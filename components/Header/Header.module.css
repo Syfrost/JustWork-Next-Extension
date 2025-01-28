@@ -1,0 +1,19 @@
+@font-face {
+    /*font-family: 'SignatureVP';*/
+    /*font-family: 'Magnolia Light', sans-serif;*/
+    font-family: 'ALLOVER';
+    /*src: url('/styles/SignatureVP.otf') format('opentype');*/
+    src: url('/styles/ALLOVER.otf') format('opentype');
+}
+
+.head {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 400px;
+    font-size: 25px;
+    line-height: 25px;
+    padding-top: 1rem;
+    color: white;
+    font-family: 'ALLOVER', sans-serif;
+}

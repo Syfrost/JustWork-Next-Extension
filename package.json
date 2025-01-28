@@ -1,0 +1,22 @@
+{
+  "name": "next-chrome",
+  "version": "0.0.2",
+  "description": "Next.js Chrome Extension",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run prep",
+    "prep": "next build && node out.js",
+    "exp": "next build && next export",
+    "run": "next start",
+    "dev": "next dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "glob": "^10.2.3",
+    "next": "15.1.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
