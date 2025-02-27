@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "JustWork",
   "short_name": "JW",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Next.js Chrome Extension",
   "icons": {
     "16": "/icons/icon16.png",
@@ -12,7 +12,8 @@
   },
   "permissions": ["webNavigation", "scripting", "activeTab"],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "web_accessible_resources": [
     {

@@ -8,7 +8,10 @@
     "prep": "next build && node out.js",
     "exp": "next build && next export",
     "run": "next start",
-    "dev": "next dev"
+    "dev": "next dev",
+    "packnewkey": "cmd /c \"\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --pack-extension=C:\\Users\\Syfrost\\Documents\\Project_perso\\Fasst\\out\"",
+    "packkey": "cmd /c \"\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --pack-extension=C:\\Users\\Syfrost\\Documents\\Project_perso\\Fasst\\out --pack-extension-key=C:\\Users\\Syfrost\\Documents\\Project_perso\\Fasst\\my-extension.pem\" && npm run rename\"",
+    "rename": "node renameCrx.js"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +19,7 @@
   "dependencies": {
     "glob": "^10.2.3",
     "next": "15.1.2",
+    "openssl-nodejs": "^1.0.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }

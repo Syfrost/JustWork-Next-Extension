@@ -10,7 +10,7 @@
   display: flex;
   flex: 1;
   height: 20px;
-  padding: 20px;
+  padding: 5px;
 
 }
 
@@ -22,7 +22,7 @@
   flex-grow: 1;
   font-size: 12px;
   color: #ffffff;
-  font-family: 'ALLOVER', sans-serif;
+  /*font-family: 'ALLOVER', sans-serif;*/
 }
 
 .logo {
