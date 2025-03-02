@@ -11,7 +11,8 @@
     "dev": "next dev",
     "packnewkey": "cmd /c \"\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --pack-extension=C:\\Users\\Syfrost\\Documents\\Project_perso\\Fasst\\out\"",
     "packkey": "cmd /c \"\"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\" --pack-extension=C:\\Users\\Syfrost\\Documents\\Project_perso\\Fasst\\out --pack-extension-key=C:\\Users\\Syfrost\\Documents\\Project_perso\\Fasst\\my-extension.pem\" && npm run rename\"",
-    "rename": "node renameCrx.js"
+    "rename": "node renameCrx.js",
+    "packzip": "powershell -ExecutionPolicy Bypass -File zipExtension.ps1"
   },
   "keywords": [],
   "author": "",
