@@ -1,7 +1,7 @@
 import styles from './Footer.module.css';
 import manifest from '../../public/manifest.json';
 
-export default function Footer() {
+export default function Footer() {  //add update icon status
     return (
         <footer className={styles.footer}>
             <a
