@@ -2,7 +2,8 @@
     'use strict';
 
     // Récupérer la valeur `cpValue` définie par l'utilisateur
-    const cpValue = window.cpValue || "N"; // Valeur par défaut si non définie
+    //const cpValue = window.cpValue || "N"; // Valeur par défaut si non définie
+    const cpValue = localStorage.getItem("cpValue") || "N";
 
     // Créer un conteneur pour les boutons
     const buttonContainer = document.createElement('div');
