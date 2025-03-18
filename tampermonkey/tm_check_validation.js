@@ -44,7 +44,7 @@
     styleButton(buttonSign, 'orange', 'fa-pen');
     buttonSign.onclick = function() {
         const buttons_SIGN = document.querySelectorAll(`button[cp="${cpValue}"]`);
-console.log("${cpValue}");
+console.log("cp" + cpValue);
         buttons_SIGN.forEach(button => button.click());
     };
     buttonContainer.appendChild(buttonSign);
