@@ -1,9 +1,8 @@
 (function() {
     'use strict';
 
-    // Récupérer la valeur `cpValue` définie par l'utilisateur
-    //const cpValue = window.cpValue || "N"; // Valeur par défaut si non définie
-    const cpValue = localStorage.getItem("cpValue") || "N";
+    // Récupérer la valeur de l'élément #idUser ou chaîne vide si absent
+    const cpPersoValue = (document.getElementById("idUser") || {}).value || "";
 
     // Créer un conteneur pour les boutons
     const buttonContainer = document.createElement('div');
@@ -29,48 +28,36 @@
         button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
     }
 
-    // Créer le bouton "Conforme"
+    // Bouton "Conforme"
     const buttonConfo = document.createElement('button');
     buttonConfo.innerText = 'Conforme';
     styleButton(buttonConfo, 'blue', 'fa-check');
     buttonConfo.onclick = function() {
-        const buttons_CONFO = document.querySelectorAll('button[title="Conforme"]');
-        buttons_CONFO.forEach(button => button.click());
+        document.querySelectorAll('button[title="Conforme"]').forEach(button => button.click());
     };
     buttonContainer.appendChild(buttonConfo);
 
-    // Créer le bouton "Signer"
+    // Bouton "Signer"
     const buttonSign = document.createElement('button');
     buttonSign.innerText = 'Signer';
     styleButton(buttonSign, 'orange', 'fa-pen');
     buttonSign.onclick = function() {
-        const buttons_SIGN = document.querySelectorAll(`button[cp="${cpValue}"]`);
-console.log("cp" + cpValue);
-        buttons_SIGN.forEach(button => button.click());
+        console.log("cpPersoValue =", cpPersoValue);
+        document.querySelectorAll(`button[cp="${cpPersoValue}"]`).forEach(button => button.click());
     };
     buttonContainer.appendChild(buttonSign);
 
-    // Créer le bouton "Valider"
+    // Bouton "Valider"
     const buttonValidate = document.createElement('button');
     buttonValidate.innerText = 'Valider';
     styleButton(buttonValidate, 'green', 'fa-arrow-right');
-
     buttonValidate.onclick = function() {
-        const validateAndNextButton = document.getElementById('fonctionnel_validateAndNext_form');
-
-        if (validateAndNextButton) {
-            validateAndNextButton.click();
+        const btn = document.getElementById('fonctionnel_validateAndNext_form') || document.getElementById('fonctionnel_validate_form');
+        if (btn) {
+            btn.click();
         } else {
-            const validateButton = document.getElementById('fonctionnel_validate_form');
-            if (validateButton) {
-                validateButton.click();
-            } else {
-                alert('Bouton Valider introuvable!');
-            }
+            alert('Bouton Valider introuvable!');
         }
     };
-
-    // Ajouter le bouton au conteneur existant
     buttonContainer.appendChild(buttonValidate);
-
 })();
