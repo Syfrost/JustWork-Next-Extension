@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Script collector auto
 // @namespace    http://tampermonkey.net/
-// @version      1.2.3
+// @version      1.2.4
 // @description  Charge plusieurs scripts distants
 // @author       Cedric G
 // @match        https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/*
