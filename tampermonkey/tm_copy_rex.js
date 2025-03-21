@@ -136,18 +136,33 @@
         }
     
         formulaire.querySelectorAll('input, select, textarea').forEach((element) => {
-            if (formData[element.name] !== undefined) {
+            const value = formData[element.name];
+            if (value !== undefined) {
                 if (element.tagName === 'SELECT' && element.multiple) {
                     Array.from(element.options).forEach(option => {
-                        option.selected = formData[element.name].includes(option.value);
+                        option.selected = value.includes(option.value);
                     });
-                    $(element).selectpicker('refresh');
+    
+                    // Si Bootstrap Select est utilisé (ou tout autre plugin), on peut simuler une mise à jour comme ceci :
+                    if (typeof element.closest === 'function') {
+                        const container = element.closest('.bootstrap-select');
+                        if (container) {
+                            const display = container.querySelector('.filter-option-inner-inner');
+                            if (display) {
+                                display.textContent = Array.from(element.selectedOptions).map(opt => opt.textContent).join(', ');
+                            }
+                        }
+                    }
+    
                 } else {
-                    element.value = formData[element.name];
+                    element.value = value;
                 }
+    
+                // Déclencher les événements nécessaires
+                element.dispatchEvent(new Event('input', { bubbles: true }));
+                element.dispatchEvent(new Event('change', { bubbles: true }));
+                element.dispatchEvent(new Event('blur', { bubbles: true }));
             }
         });
-    
-        //alert(`Données collées depuis '${slot}' !`);
     }
 })();
