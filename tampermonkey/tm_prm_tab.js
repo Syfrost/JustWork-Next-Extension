@@ -2,14 +2,16 @@
     'use strict';
 
     const lignesTraitées = new WeakSet();
-    let boutonAjouté = false;
+    let boutonOuvertureAjouté = false;
+    let boutonCollerAjouté = false;
+    let boutonTraiterAjouté = false;
 
     function afficherIframe(pk, element) {
         const tr = element.closest('tr');
         const existingIframeRow = tr.nextElementSibling;
 
         if (existingIframeRow && existingIframeRow.classList.contains('iframe-row')) {
-            return; // déjà ouvert, ne rien faire
+            return;
         }
 
         const newRow = document.createElement('tr');
@@ -34,15 +36,9 @@
 
     function scanTRs() {
         const table = document.getElementById('dataTablePrmFilles');
-        if (!table) {
-            console.log('⏳ Table #dataTablePrmFilles non trouvée...');
-            return;
-        }
+        if (!table) return;
 
         const lignes = table.querySelectorAll('tr[idreparation]');
-        if (lignes.length > 0) {
-            console.log(`📦 ${lignes.length} ligne(s) détectée(s)`);
-        }
 
         lignes.forEach(tr => {
             if (lignesTraitées.has(tr)) return;
@@ -52,7 +48,6 @@
 
             if (!existingLink && idReparation) {
                 const tds = tr.querySelectorAll('td');
-
                 if (tds.length >= 3) {
                     const targetTd = tds[2];
                     targetTd.classList.add('noRedirect', 'noColvis', 'noExportable', 'noClick');
@@ -69,46 +64,148 @@
                         e.preventDefault();
                         afficherIframe(idReparation, this);
                     });
-
-                    console.log(`➕ Lien ajouté pour idreparation=${idReparation}`);
                 }
             }
 
             lignesTraitées.add(tr);
         });
 
-        // Ajouter le bouton une seule fois
-        if (!boutonAjouté) {
+        if (!boutonOuvertureAjouté) {
             ajouterBoutonToutOuvrir();
-            boutonAjouté = true;
+            boutonOuvertureAjouté = true;
+        }
+
+        const iframesActives = document.querySelectorAll('tr.iframe-row iframe');
+
+        if (iframesActives.length > 0) {
+            ajouterBoutonCollerIframe();
+            ajouterBoutonTraiterIframe();
+        } else {
+            retirerBouton("btnCollerIframeCRI");
+            boutonCollerAjouté = false;
+
+            retirerBouton("btnTraiterIframeCRI");
+            boutonTraiterAjouté = false;
         }
     }
 
     function ajouterBoutonToutOuvrir() {
         const container = document.querySelector('#dataTablePrmFilles_wrapper .dt-buttons');
-        if (!container) {
-            console.warn('⚠️ Conteneur des boutons non trouvé');
-            return;
-        }
+        if (!container) return;
 
         const bouton = document.createElement('button');
         bouton.className = 'btn btn-success btn-border-radius';
         bouton.innerHTML = '<span>Tout ouvrir</span>';
-        bouton.title = 'Ouvrir toutes les réparations dans des iframes';
         bouton.style.marginLeft = '8px';
+        bouton.title = 'Ouvrir toutes les réparations';
 
         bouton.addEventListener('click', () => {
             const liens = document.querySelectorAll('#dataTablePrmFilles a.afficherIframe');
-            console.log(`▶️ Ouverture de ${liens.length} iframe(s)`);
-            liens.forEach(lien => {
-                lien.click(); // Simule le clic pour ouvrir l’iframe
-            });
+            liens.forEach(lien => lien.click());
         });
 
         container.appendChild(bouton);
-        console.log('✅ Bouton "Tout ouvrir" ajouté');
     }
 
-    // Scan toutes les secondes
+    function ajouterBoutonCollerIframe() {
+        const buttonContainer = getFloatingButtonContainer();
+        if (!buttonContainer || document.getElementById("btnCollerIframeCRI")) return;
+
+        const bouton = document.createElement("button");
+        bouton.id = "btnCollerIframeCRI";
+        bouton.innerText = "Coller Iframe";
+        bouton.onclick = collerDansTousLesIframes;
+        styleButton(bouton, "#17a2b8", "fa-paste");
+
+        buttonContainer.prepend(bouton);
+        boutonCollerAjouté = true;
+    }
+
+    function ajouterBoutonTraiterIframe() {
+        const buttonContainer = getFloatingButtonContainer();
+        if (!buttonContainer || document.getElementById("btnTraiterIframeCRI")) return;
+
+        const bouton = document.createElement("button");
+        bouton.id = "btnTraiterIframeCRI";
+        bouton.innerText = "Traiter Iframe";
+        bouton.onclick = traiterTousLesIframes;
+        styleButton(bouton, "#007bff", "fa-bolt");
+
+        buttonContainer.prepend(bouton);
+        boutonTraiterAjouté = true;
+    }
+
+    function retirerBouton(id) {
+        document.getElementById(id)?.remove();
+    }
+
+    function getFloatingButtonContainer() {
+        return document.querySelector('div[style*="position: fixed;"][style*="bottom: 10px;"][style*="right: 10px;"]');
+    }
+
+    function styleButton(button, backgroundColor, iconClass) {
+        button.style.margin = '5px';
+        button.style.backgroundColor = backgroundColor;
+        button.style.color = 'white';
+        button.style.padding = '5px 10px';
+        button.style.border = 'none';
+        button.style.borderRadius = '5px';
+        button.style.cursor = 'pointer';
+        button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
+    }
+
+    function collerDansTousLesIframes() {
+        const formData = JSON.parse(localStorage.getItem('formulaireCopie'));
+        if (!formData) {
+            alert("Aucune donnée à coller.");
+            return;
+        }
+
+        const iframes = document.querySelectorAll('tr.iframe-row iframe');
+
+        iframes.forEach(iframe => {
+            try {
+                const doc = iframe.contentWindow.document;
+                const formulaire = doc.querySelector('#panel-body-groupe_saisie_cri');
+                if (!formulaire) return;
+
+                formulaire.querySelectorAll('input, select, textarea').forEach((el) => {
+                    if (el.tagName === 'SELECT') {
+                        el.value = formData[el.name];
+
+                        const btn = doc.querySelector(`button[data-id="${el.id}"]`);
+                        const opt = el.querySelector(`option[value="${formData[el.name]}"]`);
+                        const optionText = opt?.textContent?.trim() || '';
+                        const filterOption = btn?.querySelector('.filter-option');
+                        if (filterOption) {
+                            filterOption.textContent = optionText;
+                        }
+                    }
+                });
+            } catch (err) {
+                console.error("⚠️ Erreur accès iframe :", err);
+            }
+        });
+    }
+
+    function traiterTousLesIframes() {
+        const iframes = document.querySelectorAll('tr.iframe-row iframe');
+
+        iframes.forEach(iframe => {
+            try {
+                const doc = iframe.contentWindow.document;
+                const bouton = doc.querySelector('button[collector-form-name="SAISIE ETIQUETTE ROUGE (CT10)"]');
+                if (bouton) {
+                    bouton.click();
+                    console.log("🟢 Clic sur bouton 'Traiter l'organe' dans une iframe");
+                } else {
+                    console.log("⚠️ Bouton 'Traiter l'organe' non trouvé dans une iframe");
+                }
+            } catch (err) {
+                console.error("❌ Impossible d'interagir avec une iframe :", err);
+            }
+        });
+    }
+
     setInterval(scanTRs, 1000);
 })();
