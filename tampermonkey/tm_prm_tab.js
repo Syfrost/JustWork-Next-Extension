@@ -2,6 +2,7 @@
     'use strict';
 
     const processedRows = new WeakSet();
+    const iframeReloadAttempts = new WeakMap();
 
     function renderIframe(pk, element) {
         const row = element.closest('tr');
@@ -74,11 +75,14 @@
         if (iframes.length > 0) {
             createPasteAllButton();
             createTriggerAllButton();
+            hideElementsInIframes();
+            checkRedirectErrorsInIframes();
         } else {
             removeFloatingButton('btnPasteAllIframes');
             removeFloatingButton('btnTriggerAllIframes');
         }
     }
+
 
     function createOpenAllButton() {
         const container = document.querySelector('#dataTablePrmFilles_wrapper .dt-buttons');
@@ -210,4 +214,58 @@
     }
 
     setInterval(monitorTable, 1000);
+
+    function hideElementsInIframes() {
+        const iframes = document.querySelectorAll('tr.iframe-row iframe');
+
+        iframes.forEach(iframe => {
+            try {
+                const doc = iframe.contentWindow.document;
+
+                const panel = doc.getElementById('repair_details_panel');
+                if (panel) {
+                    panel.style.display = 'none';
+                    console.log("🙈 'repair_details_panel' masqué dans une iframe");
+                }
+
+            } catch (err) {
+                console.error("❌ Impossible d'accéder à une iframe :", err);
+            }
+        });
+    }
+    function checkRedirectErrorsInIframes() {
+        const iframes = document.querySelectorAll('tr.iframe-row iframe');
+
+        iframes.forEach(iframe => {
+            try {
+                const doc = iframe.contentWindow.document;
+                const bodyText = doc.body?.innerText || '';
+                const titleText = doc.title || '';
+
+                const isRedirectError = bodyText.includes("vous a redirigé à de trop nombreuses reprises")
+                || titleText.toLowerCase().includes("redirigé");
+
+                if (isRedirectError) {
+                    const currentAttempts = iframeReloadAttempts.get(iframe) || 0;
+
+                    if (currentAttempts >= 10) {
+                        console.error("❌ Trop de tentatives de reload pour cette iframe. Abandon après 10 essais.");
+                        return;
+                    }
+
+                    console.warn(`🔁 Redirection détectée (tentative ${currentAttempts + 1}/10). Reload dans 2s...`);
+
+                    setTimeout(() => {
+                        iframe.contentWindow.location.reload();
+                        iframeReloadAttempts.set(iframe, currentAttempts + 1);
+                        console.log("🔄 Iframe rechargée.");
+                    }, 2000);
+                }
+
+            } catch (err) {
+                console.error("❌ Erreur d'accès à une iframe :", err);
+            }
+        });
+    }
+
 })();
