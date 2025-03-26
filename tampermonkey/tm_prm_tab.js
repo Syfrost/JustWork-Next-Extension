@@ -1,24 +1,19 @@
 (function () {
     'use strict';
 
-    const lignesTraitées = new WeakSet();
-    let boutonOuvertureAjouté = false;
-    let boutonCollerAjouté = false;
-    let boutonTraiterAjouté = false;
+    const processedRows = new WeakSet();
 
-    function afficherIframe(pk, element) {
-        const tr = element.closest('tr');
-        const existingIframeRow = tr.nextElementSibling;
+    function renderIframe(pk, element) {
+        const row = element.closest('tr');
+        const existingIframe = row.nextElementSibling;
 
-        if (existingIframeRow && existingIframeRow.classList.contains('iframe-row')) {
-            return;
-        }
+        if (existingIframe && existingIframe.classList.contains('iframe-row')) return;
 
         const newRow = document.createElement('tr');
         newRow.classList.add('iframe-row');
 
-        const newCell = document.createElement('td');
-        newCell.colSpan = tr.children.length;
+        const cell = document.createElement('td');
+        cell.colSpan = row.children.length;
 
         const iframe = document.createElement('iframe');
         iframe.src = `https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/${pk}.html`;
@@ -28,122 +23,125 @@
         iframe.style.marginTop = '10px';
         iframe.style.display = 'block';
 
-        newCell.appendChild(iframe);
-        newRow.appendChild(newCell);
-
-        tr.parentNode.insertBefore(newRow, tr.nextSibling);
+        cell.appendChild(iframe);
+        newRow.appendChild(cell);
+        row.parentNode.insertBefore(newRow, row.nextSibling);
     }
 
-    function scanTRs() {
+    function monitorTable() {
         const table = document.getElementById('dataTablePrmFilles');
         if (!table) return;
 
-        const lignes = table.querySelectorAll('tr[idreparation]');
+        const rows = table.querySelectorAll('tr[idreparation]');
+        rows.forEach(row => {
+            if (processedRows.has(row)) return;
 
-        lignes.forEach(tr => {
-            if (lignesTraitées.has(tr)) return;
+            const pk = row.getAttribute('idreparation');
+            const existingLink = row.querySelector('a.openIframeLink');
 
-            const idReparation = tr.getAttribute('idreparation');
-            const existingLink = tr.querySelector('a.afficherIframe');
+            if (!existingLink && pk) {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 3) {
+                    const targetCell = cells[2];
+                    targetCell.classList.add('noRedirect', 'noColvis', 'noExportable', 'noClick');
 
-            if (!existingLink && idReparation) {
-                const tds = tr.querySelectorAll('td');
-                if (tds.length >= 3) {
-                    const targetTd = tds[2];
-                    targetTd.classList.add('noRedirect', 'noColvis', 'noExportable', 'noClick');
+                    const link = document.createElement('a');
+                    link.className = 'dropdown-item openIframeLink';
+                    link.setAttribute('pk', pk);
+                    link.innerHTML = '<!-- <i class="fas fa-eye"></i> -->Afficher ici';
+                    link.style.cursor = 'pointer';
 
-                    const lien = document.createElement('a');
-                    lien.className = 'dropdown-item afficherIframe';
-                    lien.setAttribute('pk', idReparation);
-                    lien.innerHTML = '<!-- <i class="fas fa-eye"></i> -->Afficher ici';
-                    lien.style.cursor = 'pointer';
-
-                    targetTd.appendChild(lien);
-
-                    lien.addEventListener('click', function (e) {
+                    link.addEventListener('click', function (e) {
                         e.preventDefault();
-                        afficherIframe(idReparation, this);
+                        renderIframe(pk, this);
                     });
+
+                    targetCell.appendChild(link);
+                    console.log(`➕ Lien ajouté pour la réparation ${pk}`);
                 }
             }
 
-            lignesTraitées.add(tr);
+            processedRows.add(row);
         });
 
-        if (!boutonOuvertureAjouté) {
-            ajouterBoutonToutOuvrir();
-            boutonOuvertureAjouté = true;
+        const toolbar = document.querySelector('#dataTablePrmFilles_wrapper .dt-buttons');
+        if (toolbar && !document.getElementById('btnOpenAllIframes')) {
+            createOpenAllButton();
         }
 
-        const iframesActives = document.querySelectorAll('tr.iframe-row iframe');
+        const iframes = document.querySelectorAll('tr.iframe-row iframe');
 
-        if (iframesActives.length > 0) {
-            ajouterBoutonCollerIframe();
-            ajouterBoutonTraiterIframe();
+        if (iframes.length > 0) {
+            createPasteAllButton();
+            createTriggerAllButton();
         } else {
-            retirerBouton("btnCollerIframeCRI");
-            boutonCollerAjouté = false;
-
-            retirerBouton("btnTraiterIframeCRI");
-            boutonTraiterAjouté = false;
+            removeFloatingButton('btnPasteAllIframes');
+            removeFloatingButton('btnTriggerAllIframes');
         }
     }
 
-    function ajouterBoutonToutOuvrir() {
+    function createOpenAllButton() {
         const container = document.querySelector('#dataTablePrmFilles_wrapper .dt-buttons');
         if (!container) return;
 
-        const bouton = document.createElement('button');
-        bouton.className = 'btn btn-success btn-border-radius';
-        bouton.innerHTML = '<span>Tout ouvrir</span>';
-        bouton.style.marginLeft = '8px';
-        bouton.title = 'Ouvrir toutes les réparations';
+        const button = document.createElement('button');
+        button.id = 'btnOpenAllIframes';
+        button.className = 'btn btn-success btn-border-radius';
+        button.innerHTML = '<span>Tout ouvrir</span>';
+        button.style.marginLeft = '8px';
+        button.title = 'Ouvrir toutes les réparations';
 
-        bouton.addEventListener('click', () => {
-            const liens = document.querySelectorAll('#dataTablePrmFilles a.afficherIframe');
-            liens.forEach(lien => lien.click());
+        button.addEventListener('click', () => {
+            const links = document.querySelectorAll('#dataTablePrmFilles a.openIframeLink');
+            links.forEach(link => link.click());
+            console.log(`▶️ ${links.length} iframe(s) ouvertes`);
         });
 
-        container.appendChild(bouton);
+        container.appendChild(button);
+        console.log('✅ Bouton "Tout ouvrir" ajouté');
     }
 
-    function ajouterBoutonCollerIframe() {
-        const buttonContainer = getFloatingButtonContainer();
-        if (!buttonContainer || document.getElementById("btnCollerIframeCRI")) return;
+    function createPasteAllButton() {
+        const container = getFloatingButtonArea();
+        if (!container || document.getElementById("btnPasteAllIframes")) return;
 
-        const bouton = document.createElement("button");
-        bouton.id = "btnCollerIframeCRI";
-        bouton.innerText = "Coller Iframe";
-        bouton.onclick = collerDansTousLesIframes;
-        styleButton(bouton, "#17a2b8", "fa-paste");
+        const button = document.createElement("button");
+        button.id = "btnPasteAllIframes";
+        button.innerText = "Coller Iframe";
+        button.onclick = pasteIntoIframes;
+        styleFloatingButton(button, "#17a2b8", "fa-paste");
 
-        buttonContainer.prepend(bouton);
-        boutonCollerAjouté = true;
+        container.prepend(button);
+        console.log("✅ Bouton 'Coller Iframe' ajouté");
     }
 
-    function ajouterBoutonTraiterIframe() {
-        const buttonContainer = getFloatingButtonContainer();
-        if (!buttonContainer || document.getElementById("btnTraiterIframeCRI")) return;
+    function createTriggerAllButton() {
+        const container = getFloatingButtonArea();
+        if (!container || document.getElementById("btnTriggerAllIframes")) return;
 
-        const bouton = document.createElement("button");
-        bouton.id = "btnTraiterIframeCRI";
-        bouton.innerText = "Traiter Iframe";
-        bouton.onclick = traiterTousLesIframes;
-        styleButton(bouton, "#007bff", "fa-bolt");
+        const button = document.createElement("button");
+        button.id = "btnTriggerAllIframes";
+        button.innerText = "Traiter Iframe";
+        button.onclick = triggerButtonsInIframes;
+        styleFloatingButton(button, "#007bff", "fa-bolt");
 
-        buttonContainer.prepend(bouton);
-        boutonTraiterAjouté = true;
+        container.prepend(button);
+        console.log("✅ Bouton 'Traiter Iframe' ajouté");
     }
 
-    function retirerBouton(id) {
-        document.getElementById(id)?.remove();
+    function removeFloatingButton(id) {
+        const btn = document.getElementById(id);
+        if (btn) {
+            btn.remove();
+            console.log(`❌ Bouton '${id}' retiré`);
+        }
     }
 
-    function getFloatingButtonContainer() {
+    function getFloatingButtonArea() {
         return document.querySelector('div[style*="position: fixed;"][style*="bottom: 10px;"][style*="right: 10px;"]');
     }
 
-    function styleButton(button, backgroundColor, iconClass) {
+    function styleFloatingButton(button, backgroundColor, iconClass) {
         button.style.margin = '5px';
         button.style.backgroundColor = backgroundColor;
         button.style.color = 'white';
@@ -154,10 +152,10 @@
         button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
     }
 
-    function collerDansTousLesIframes() {
+    function pasteIntoIframes() {
         const formData = JSON.parse(localStorage.getItem('formulaireCopie'));
         if (!formData) {
-            alert("Aucune donnée à coller.");
+            alert("Aucune donnée à coller. Veuillez copier un formulaire d'abord.");
             return;
         }
 
@@ -166,38 +164,42 @@
         iframes.forEach(iframe => {
             try {
                 const doc = iframe.contentWindow.document;
-                const formulaire = doc.querySelector('#panel-body-groupe_saisie_cri');
-                if (!formulaire) return;
+                const form = doc.querySelector('#panel-body-groupe_saisie_cri');
+                if (!form) return;
 
-                formulaire.querySelectorAll('input, select, textarea').forEach((el) => {
+                form.querySelectorAll('input, select, textarea').forEach((el) => {
                     if (el.tagName === 'SELECT') {
                         el.value = formData[el.name];
 
-                        const btn = doc.querySelector(`button[data-id="${el.id}"]`);
-                        const opt = el.querySelector(`option[value="${formData[el.name]}"]`);
-                        const optionText = opt?.textContent?.trim() || '';
-                        const filterOption = btn?.querySelector('.filter-option');
-                        if (filterOption) {
-                            filterOption.textContent = optionText;
+                        const selectBtn = doc.querySelector(`button[data-id="${el.id}"]`);
+                        const selectedOpt = el.querySelector(`option[value="${formData[el.name]}"]`);
+                        const text = selectedOpt?.textContent?.trim() || '';
+                        const filter = selectBtn?.querySelector('.filter-option');
+                        if (filter) {
+                            filter.textContent = text;
                         }
+                    } else {
+                        el.value = formData[el.name] || '';
                     }
                 });
+
+                console.log("✅ Formulaire collé dans une iframe");
             } catch (err) {
-                console.error("⚠️ Erreur accès iframe :", err);
+                console.error("⚠️ Erreur d'accès à une iframe :", err);
             }
         });
     }
 
-    function traiterTousLesIframes() {
+    function triggerButtonsInIframes() {
         const iframes = document.querySelectorAll('tr.iframe-row iframe');
 
         iframes.forEach(iframe => {
             try {
                 const doc = iframe.contentWindow.document;
-                const bouton = doc.querySelector('button[collector-form-name="SAISIE ETIQUETTE ROUGE (CT10)"]');
-                if (bouton) {
-                    bouton.click();
-                    console.log("🟢 Clic sur bouton 'Traiter l'organe' dans une iframe");
+                const button = doc.querySelector('button[collector-form-name="SAISIE ETIQUETTE ROUGE (CT10)"]');
+                if (button) {
+                    button.click();
+                    console.log("🟢 Clic sur 'Traiter l'organe' dans une iframe");
                 } else {
                     console.log("⚠️ Bouton 'Traiter l'organe' non trouvé dans une iframe");
                 }
@@ -207,5 +209,5 @@
         });
     }
 
-    setInterval(scanTRs, 1000);
+    setInterval(monitorTable, 1000);
 })();
