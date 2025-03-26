@@ -77,6 +77,7 @@
             createTriggerAllButton();
             hideElementsInIframes();
             checkRedirectErrorsInIframes();
+            makeErrorAlertsClosableInIframes();
         } else {
             removeFloatingButton('btnPasteAllIframes');
             removeFloatingButton('btnTriggerAllIframes');
@@ -264,6 +265,39 @@
 
             } catch (err) {
                 console.error("❌ Erreur d'accès à une iframe :", err);
+            }
+        });
+    }
+    function makeErrorAlertsClosableInIframes() {
+        const iframes = document.querySelectorAll('tr.iframe-row iframe');
+
+        iframes.forEach(iframe => {
+            try {
+                const doc = iframe.contentWindow.document;
+                const alert = doc.querySelector('.alert.alert-danger');
+
+                if (
+                    alert &&
+                    alert.innerText.includes("Pas de transition applicable") &&
+                    !alert.dataset.clickable
+                ) {
+                    alert.style.cursor = 'pointer';
+                    alert.title = "Cliquer ici pour fermer cette iframe";
+                    alert.dataset.clickable = "true"; // pour ne pas re-lier l'event plusieurs fois
+
+                    alert.addEventListener('click', () => {
+                        const tr = iframe.closest('tr.iframe-row');
+                        if (tr) {
+                            tr.remove();
+                            console.log("❎ Iframe fermée après clic sur l'alerte 'Pas de transition applicable'");
+                        }
+                    });
+
+                    console.log("🟠 Alerte détectée et rendue cliquable dans une iframe");
+                }
+
+            } catch (err) {
+                console.error("❌ Erreur d'accès à une iframe pour rendre l'alerte cliquable :", err);
             }
         });
     }
