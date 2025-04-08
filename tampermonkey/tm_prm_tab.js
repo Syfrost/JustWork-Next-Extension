@@ -8,8 +8,15 @@
         const row = element.closest('tr');
         const existingIframe = row.nextElementSibling;
 
-        if (existingIframe && existingIframe.classList.contains('iframe-row')) return;
+        // Si déjà affichée => on la supprime et on remet le texte à "Afficher ici"
+        if (existingIframe && existingIframe.classList.contains('iframe-row')) {
+            existingIframe.remove();
+            element.innerHTML = 'Afficher ici';
+            console.log(`❎ Iframe fermée pour la réparation ${pk}`);
+            return;
+        }
 
+        // Sinon, on crée et insère l'iframe
         const newRow = document.createElement('tr');
         newRow.classList.add('iframe-row');
 
@@ -27,7 +34,12 @@
         cell.appendChild(iframe);
         newRow.appendChild(cell);
         row.parentNode.insertBefore(newRow, row.nextSibling);
+
+        // Mise à jour du texte du lien
+        element.innerHTML = 'Cacher';
+        console.log(`📂 Iframe affichée pour la réparation ${pk}`);
     }
+
 
     function monitorTable() {
         const table = document.getElementById('dataTablePrmFilles');
@@ -49,13 +61,14 @@
                     const link = document.createElement('a');
                     link.className = 'dropdown-item openIframeLink';
                     link.setAttribute('pk', pk);
-                    link.innerHTML = '<!-- <i class="fas fa-eye"></i> -->Afficher ici';
+                    link.innerHTML = 'Afficher ici'; // texte initial
                     link.style.cursor = 'pointer';
 
                     link.addEventListener('click', function (e) {
                         e.preventDefault();
                         renderIframe(pk, this);
                     });
+
 
                     targetCell.appendChild(link);
                     console.log(`➕ Lien ajouté pour la réparation ${pk}`);
@@ -198,16 +211,34 @@
     function triggerButtonsInIframes() {
         const iframes = document.querySelectorAll('tr.iframe-row iframe');
 
+        // Liste des priorités : le premier trouvé est cliqué
+        const priorityList = [
+            'Saisie REX',
+            'Saisie du plan de contrôle',
+            'SAISIE ETIQUETTE ROUGE (CT10)',
+            'SAISIE AUTRE',
+            // Ajoute d'autres si nécessaire
+        ];
+
         iframes.forEach(iframe => {
             try {
                 const doc = iframe.contentWindow.document;
-                const button = doc.querySelector('button[collector-form-name="SAISIE ETIQUETTE ROUGE (CT10)"]');
-                if (button) {
-                    button.click();
-                    console.log("🟢 Clic sur 'Traiter l'organe' dans une iframe");
-                } else {
-                    console.log("⚠️ Bouton 'Traiter l'organe' non trouvé dans une iframe");
+                let clicked = false;
+
+                for (const label of priorityList) {
+                    const button = doc.querySelector(`button[collector-form-name="${label}"]`);
+                    if (button) {
+                        button.click();
+                        console.log(`🟢 Clic sur '${label}' dans une iframe`);
+                        clicked = true;
+                        break; // Stoppe à la première priorité trouvée
+                    }
                 }
+
+                if (!clicked) {
+                    console.log("⚠️ Aucun bouton prioritaire trouvé dans une iframe");
+                }
+
             } catch (err) {
                 console.error("❌ Impossible d'interagir avec une iframe :", err);
             }
