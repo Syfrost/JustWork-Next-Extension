@@ -13,7 +13,6 @@
         if (verifierPresenceTitre()) {
             ajouterBoutons();
         } else {
-            console.log("Cri NP")
             retirerBoutons();
         }
     }, 1000);
