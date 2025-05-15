@@ -1,13 +1,15 @@
 // ==UserScript==
 // @name         Auto post collector cri
-// @namespace    http://tampermonkey.net/
-// @version      1.2
+// @namespace    https://github.com/Syfrost/JustWork-Next-Extension
+// @version      1.5
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @connect      prod.cloud-collectorplus.mt.sncf.fr
+// @updateURL    https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/master/tampermonkey/logistiquecollector.user.js
+// @downloadURL  https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/master/tampermonkey/logistiquecollector.user.js
 // ==/UserScript==
 
 (function () {
@@ -393,27 +395,39 @@
         const estOuvert = bouton.getAttribute('aria-expanded') === 'true';
 
         if (estOuvert && !processedSections.get(section)) {
-            console.log('✅ Section "Tâches terminées" OUVERTE → Extraction des tâches...');
+            console.log('✅ Section "Tâches terminées" OUVERTE → En attente du rendu...');
             processedSections.set(section, true);
+            observerAjoutTachesDansSection(section);
 
-            const taches = section.querySelectorAll('div.taskBoardCard');
+            // Attendre un court instant pour que les tâches se chargent
+            setTimeout(() => {
+                const taches = section.querySelectorAll('div.taskBoardCard');
 
-            taches.forEach(tache => {
-                const taskCard = tache.querySelector('div.taskCard');
-                if (!taskCard) return;
-
-                const lienElement = taskCard.querySelector('span.previewCaption');
-                const lien = lienElement?.textContent?.trim();
-
-                if (lien) {
-                    console.log('📝 Tâche détectée avec lien :', lien);
-
-                    const numeroReparation = lien.match(/\/(\d+)\.html$/)?.[1] || 'inconnu';
-                    ajouterOverlayTaskCard(taskCard, numeroReparation, 'Chargement...');
-
-                    testerLienHttp(lien, taskCard); // 🆕 on passe le taskCard
+                if (!taches.length) {
+                    console.warn('⚠️ Aucune tâche trouvée dans cette section. Peut-être encore en chargement ou vide.');
+                    return;
                 }
-            });
+
+                taches.forEach(tache => {
+                    const taskCard = tache.querySelector('div.taskCard');
+                    if (!taskCard) {
+                        console.warn('❌ taskCard manquant pour une tâche détectée.');
+                        return;
+                    }
+
+                    const lienElement = taskCard.querySelector('span.previewCaption');
+                    const lien = lienElement?.textContent?.trim();
+
+                    if (lien) {
+                        console.log('📝 Tâche détectée avec lien :', lien);
+                        const numeroReparation = lien.match(/\/(\d+)\.html$/)?.[1] || 'inconnu';
+                        ajouterOverlayTaskCard(taskCard, numeroReparation, 'Chargement...');
+                        testerLienHttp(lien, taskCard);
+                    } else {
+                        console.warn('❌ Lien manquant dans cette taskCard.');
+                    }
+                });
+            }, 500); // ← délai ajustable (500ms est souvent suffisant)
         }
 
         if (!estOuvert && processedSections.get(section)) {
@@ -421,6 +435,7 @@
             processedSections.set(section, false);
         }
     }
+
 
     function ajouterOverlayTaskCard(taskCard, numeroReparation, texteLabel = 'Chargement...') {
         const thumbnail = taskCard.querySelector('.thumbnail.placeholder');
@@ -464,6 +479,101 @@
         thumbnail.appendChild(container);
     }
 
+    function observerDisparitionSectionsTachesTerminees() {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+                mutation.removedNodes.forEach(node => {
+                    if (
+                        node.nodeType === 1 &&
+                        node.matches('.secondarySection')
+                    ) {
+                        const titre = node.querySelector('h4.toggleText')?.textContent?.trim();
+                        if (titre === 'Tâches terminées') {
+                            console.log('🗑️ Section "Tâches terminées" retirée du DOM');
+
+                            // Supprimer toutes les tâches associées à cette section
+                            const cards = node.querySelectorAll('div.taskBoardCard');
+                            cards.forEach(card => {
+                                const lien = card.querySelector('span.previewCaption')?.textContent?.trim();
+                                const numero = lien?.match(/\/(\d+)\.html$/)?.[1];
+                                if (numero) {
+                                    const index = donneesTaches.findIndex(t => t.numeroReparation === numero);
+                                    if (index !== -1) {
+                                        donneesTaches.splice(index, 1);
+                                        console.log(`🗑️ Tâche ${numero} supprimée (section supprimée)`);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('👁️ Observer global actif pour suppression de sections "Tâches terminées".');
+    }
+
+
+    function observerAjoutTachesDansSection(section) {
+        const container = section.querySelector('.listWrapper');
+        if (!container) return;
+
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+
+                // ✅ Tâches ajoutées dynamiquement
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1 && node.matches('.taskBoardCard')) {
+                        const taskCard = node.querySelector('div.taskCard');
+                        if (!taskCard) return;
+
+                        const lienElement = taskCard.querySelector('span.previewCaption');
+                        const lien = lienElement?.textContent?.trim();
+                        const numeroReparation = lien?.match(/\/(\d+)\.html$/)?.[1];
+
+                        if (lien && numeroReparation) {
+                            console.log('🆕 Nouvelle tâche ajoutée dynamiquement :', lien);
+                            ajouterOverlayTaskCard(taskCard, numeroReparation, 'Chargement...');
+                            testerLienHttp(lien, taskCard);
+                        }
+                    }
+                });
+
+                // 🗑️ Tâches supprimées dynamiquement
+                mutation.removedNodes.forEach(node => {
+                    if (node.nodeType === 1 && node.matches('.taskBoardCard')) {
+                        const taskCard = node.querySelector('div.taskCard');
+                        if (!taskCard) return;
+
+                        const lienElement = taskCard.querySelector('span.previewCaption');
+                        const lien = lienElement?.textContent?.trim();
+                        const numeroReparation = lien?.match(/\/(\d+)\.html$/)?.[1];
+
+                        if (numeroReparation) {
+                            const index = donneesTaches.findIndex(t => t.numeroReparation === numeroReparation);
+                            if (index !== -1) {
+                                donneesTaches.splice(index, 1);
+                                console.log(`🗑️ Tâche retirée : ${numeroReparation} supprimée de donneesTaches`);
+                            }
+                        }
+                    }
+                });
+
+            });
+        });
+
+        observer.observe(container, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('👀 Observer actif sur ajouts/suppressions dynamiques dans cette section "Tâches terminées".');
+    }
 
     function observerOuvertureSections() {
         const cible = document.body;
@@ -491,6 +601,9 @@
         console.log('[Planner Script] Observer actif pour surveiller les ouvertures.');
     }
 
-    setTimeout(observerOuvertureSections, 2000);
+    setTimeout(() => {
+        observerOuvertureSections();
+        observerDisparitionSectionsTachesTerminees();
+    }, 2000);
 
 })();
