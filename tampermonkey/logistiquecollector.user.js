@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      1.2
+// @version      1.8
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/*
@@ -17,6 +17,7 @@
 
     const processedSections = new WeakMap();
     const donneesTaches = []; // tableau global pour stocker les infos extraites
+    let liensEnCours = 0;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', ajouterBoutonAutoCollector);
@@ -162,6 +163,22 @@
         }
     }
 
+    function updateProgressBarFromDonneesTaches() {
+        const progressContainer = document.querySelector('.autocollector__progress');
+        const progressText = progressContainer?.querySelector('.autocollector__progress-text');
+        if (!progressContainer || !progressText) return;
+
+        const total = donneesTaches.filter(t => t.label === 'ELECTRONIQUE - 00 - EN ATTENTE').length;
+        if (total === 0) {
+            progressContainer.classList.add('hidden');
+        } else {
+            progressContainer.classList.remove('hidden');
+        }
+
+        progressText.textContent = `0/${total}`;
+    }
+
+
     function ajouterBoutonAutoCollector() {
         const container = document.createElement('div');
         container.className = 'autocollector';
@@ -285,8 +302,62 @@
 
     console.log('[Planner Script] Démarrage avec requêtes GET...');
 
+    function updateAutoCollectorButtonState() {
+        const btn = document.querySelector('.autocollector__button');
+        const label = btn?.querySelector('.autocollector__button-text');
+        if (!btn || !label) return;
+
+        if (liensEnCours > 0) {
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+            label.textContent = 'Analyse en cours...';
+        } else {
+            btn.style.pointerEvents = 'auto';
+            btn.style.opacity = '1';
+            label.textContent = 'Lancer mode auto collector';
+        }
+    }
+
+    function forcerChargementCompletDesTaches(section) {
+        const scrollable = section.closest('.scrollable[data-can-drag-to-scroll="true"]');
+        const listBox = section.querySelector('.listBoxGroup');
+        const compteurElement = section.querySelector('.sectionItemCount');
+
+        if (!scrollable || !listBox || !compteurElement) return;
+
+        const totalAttendu = parseInt(compteurElement.textContent.trim(), 10) || 0;
+        let previousCount = 0;
+        let essais = 0;
+        const maxEssais = 30;
+
+        console.log(`🔽 Scroll auto lancé — Objectif : ${totalAttendu} tâches`);
+
+        const interval = setInterval(() => {
+            scrollable.scrollTop = scrollable.scrollHeight;
+
+            const currentCount = listBox.querySelectorAll('.taskBoardCard').length;
+            essais++;
+
+            if (currentCount >= totalAttendu) {
+                clearInterval(interval);
+                console.log(`✅ Chargement complet : ${currentCount}/${totalAttendu} tâches visibles.`);
+            } else if (currentCount === previousCount || essais >= maxEssais) {
+                clearInterval(interval);
+                console.warn(`⚠️ Arrêt forcé : ${currentCount}/${totalAttendu} tâches visibles après ${essais} essais.`);
+            } else {
+                previousCount = currentCount;
+                console.log(`🔄 Scroll ${essais}... ${currentCount}/${totalAttendu} tâches visibles`);
+            }
+        }, 600);
+    }
+
+
+
 
     function testerLienHttp(lien, taskCard, tentative = 1) {
+        liensEnCours++;
+        updateAutoCollectorButtonState();
+
         const maxTentatives = 5;
         const numeroReparation = lien.match(/\/(\d+)\.html$/)?.[1] || 'inconnu';
 
@@ -329,6 +400,8 @@
                         console.log(`➕ Nouvelle tâche ${numeroReparation} ajoutée`);
                     }
 
+                    updateProgressBarFromDonneesTaches();
+
                     console.log(`✅ Tâche analysée :`);
                     console.log(`   🔧 Réparation : ${numeroReparation}`);
                     console.log(`   🏷️ Label      : ${texteLabel}`);
@@ -341,6 +414,10 @@
                         overlay.querySelector('.text-numeroreparation').textContent = numeroReparation;
                         overlay.classList.remove('http-error');
                     }
+
+                    // Fin du traitement réussi
+                    liensEnCours = Math.max(0, liensEnCours - 1);
+                    updateAutoCollectorButtonState();
 
                 } else {
                     if (overlay) {
@@ -358,6 +435,8 @@
                         }, 2000);
                     } else {
                         console.warn(`❌ Échec après ${maxTentatives} tentatives pour ${lien}`);
+                        liensEnCours = Math.max(0, liensEnCours - 1);
+                        updateAutoCollectorButtonState();
                     }
                 }
             },
@@ -379,10 +458,13 @@
                     }, 2000);
                 } else {
                     console.error(`❌ Échec réseau après ${maxTentatives} tentatives :`, error);
+                    liensEnCours = Math.max(0, liensEnCours - 1);
+                    updateAutoCollectorButtonState();
                 }
             }
         });
     }
+
 
 
 
@@ -399,6 +481,7 @@
         if (estOuvert && !processedSections.get(section)) {
             console.log('✅ Section "Tâches terminées" OUVERTE → En attente du rendu...');
             processedSections.set(section, true);
+            forcerChargementCompletDesTaches(section);
             observerAjoutTachesDansSection(section);
 
             // Attendre un court instant pour que les tâches se chargent
