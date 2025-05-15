@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      1.5
+// @version      1.2
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/*
@@ -93,6 +93,7 @@
     backdrop-filter: blur(5px);
     padding: 5px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: grab;
 }
 
 .autocollector__button:hover {
@@ -135,6 +136,7 @@
     font-weight: 400;
     font-size: 0.8rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: not-allowed;
 }
 
 @keyframes soundwave {
@@ -415,16 +417,19 @@
                         return;
                     }
 
-                    const lienElement = taskCard.querySelector('span.previewCaption');
-                    const lien = lienElement?.textContent?.trim();
+                    const lienElement = taskCard.querySelector('a.referencePreviewDescription');
+                    let lien = lienElement?.getAttribute('title')?.trim();
+                    if (lien && !lien.endsWith('.html')) {
+                        lien += '.html';
+                    }
 
                     if (lien) {
                         console.log('📝 Tâche détectée avec lien :', lien);
-                        const numeroReparation = lien.match(/\/(\d+)\.html$/)?.[1] || 'inconnu';
+                        const numeroReparation = lien.match(/\/(\d+)(?:\.html)?$/)?.[1] || 'inconnu';
                         ajouterOverlayTaskCard(taskCard, numeroReparation, 'Chargement...');
                         testerLienHttp(lien, taskCard);
                     } else {
-                        console.warn('❌ Lien manquant dans cette taskCard.');
+                        console.warn('❌ Lien manquant (balise <a> absente ou invalide) dans cette taskCard.');
                     }
                 });
             }, 500); // ← délai ajustable (500ms est souvent suffisant)
@@ -435,6 +440,7 @@
             processedSections.set(section, false);
         }
     }
+
 
 
     function ajouterOverlayTaskCard(taskCard, numeroReparation, texteLabel = 'Chargement...') {
@@ -532,8 +538,11 @@
                         const taskCard = node.querySelector('div.taskCard');
                         if (!taskCard) return;
 
-                        const lienElement = taskCard.querySelector('span.previewCaption');
-                        const lien = lienElement?.textContent?.trim();
+                        const lienElement = taskCard.querySelector('a.referencePreviewDescription');
+                        let lien = lienElement?.getAttribute('title')?.trim();
+                        if (lien && !lien.endsWith('.html')) {
+                            lien += '.html';
+                        }
                         const numeroReparation = lien?.match(/\/(\d+)\.html$/)?.[1];
 
                         if (lien && numeroReparation) {
@@ -550,8 +559,11 @@
                         const taskCard = node.querySelector('div.taskCard');
                         if (!taskCard) return;
 
-                        const lienElement = taskCard.querySelector('span.previewCaption');
-                        const lien = lienElement?.textContent?.trim();
+                        const lienElement = taskCard.querySelector('a.referencePreviewDescription');
+                        let lien = lienElement?.getAttribute('title')?.trim();
+                        if (lien && !lien.endsWith('.html')) {
+                            lien += '.html';
+                        }
                         const numeroReparation = lien?.match(/\/(\d+)\.html$/)?.[1];
 
                         if (numeroReparation) {
