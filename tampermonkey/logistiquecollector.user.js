@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      1.8
+// @version      2.0
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/*
@@ -18,6 +18,8 @@
     const processedSections = new WeakMap();
     const donneesTaches = []; // tableau global pour stocker les infos extraites
     let liensEnCours = 0;
+    let postEnCours = 0;
+
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', ajouterBoutonAutoCollector);
@@ -227,6 +229,8 @@
         }
 
         updateProgress();
+        postEnCours = tachesAFaire.length;
+        updateAutoCollectorButtonState();
 
         tachesAFaire.forEach(tache => {
             const payload = new URLSearchParams({
@@ -275,6 +279,8 @@
                             });
                         }, 1000);
                     }
+                    postEnCours--;
+                    updateAutoCollectorButtonState();
                 },
                 onerror: () => {
                     erreurs++;
@@ -295,6 +301,8 @@
                             });
                         }, 1000);
                     }
+                    postEnCours--;
+                    updateAutoCollectorButtonState();
                 }
             });
         });
@@ -307,7 +315,11 @@
         const label = btn?.querySelector('.autocollector__button-text');
         if (!btn || !label) return;
 
-        if (liensEnCours > 0) {
+        if (postEnCours > 0) {
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+            label.textContent = 'En cours...';
+        } else if (liensEnCours > 0) {
             btn.style.pointerEvents = 'none';
             btn.style.opacity = '0.5';
             label.textContent = 'Analyse en cours...';
@@ -317,6 +329,7 @@
             label.textContent = 'Lancer mode auto collector';
         }
     }
+
 
     function forcerChargementCompletDesTaches(section) {
         const scrollable = section.closest('.scrollable[data-can-drag-to-scroll="true"]');
