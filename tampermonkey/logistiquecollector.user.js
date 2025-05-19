@@ -4,7 +4,7 @@
 // @version      2.5
 // @description  Surcouche planner
 // @author       Cedric G
-// @match        https://planner.cloud.microsoft/*
+// @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @connect      prod.cloud-collectorplus.mt.sncf.fr
