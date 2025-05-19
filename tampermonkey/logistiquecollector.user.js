@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      2.0
+// @version      2.5
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/*
@@ -210,7 +210,7 @@
         const progressText = progressContainer.querySelector('.autocollector__progress-text');
 
         const tachesAFaire = donneesTaches.filter(t =>
-                                                  t.label === 'ELECTRONIQUE - 00 - EN ATTENTE'
+                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT'].includes(t.label)
                                                  );
 
         if (tachesAFaire.length === 0) {
@@ -229,30 +229,52 @@
         }
 
         updateProgress();
-        postEnCours = tachesAFaire.length;
+        postEnCours = total;
         updateAutoCollectorButtonState();
 
         tachesAFaire.forEach(tache => {
-            const payload = new URLSearchParams({
-                S_num_cri: '',
-                t_materiel_idt_materiel: '',
-                t_site_intervention_idt_site_intervention: '',
-                fk_cause_depose: '',
-                D_date_eve: '',
-                S_num_rame: '',
-                S_num_veh: '',
-                I_kilometrage: '',
-                S_commentaire: '',
-                form_id: 'Saisie_CRI',
-                transition_id: '268',
-                idSymbole: tache.idSymbole,
-                idUser: tache.idUser,
-                current_repair_id: tache.numeroReparation
-            }).toString();
+            let url = '';
+            let payload = null;
+
+            if (tache.label === 'ELECTRONIQUE - 00 - EN ATTENTE') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/processTransitionForm';
+                payload = new URLSearchParams({
+                    S_num_cri: '',
+                    t_materiel_idt_materiel: '',
+                    t_site_intervention_idt_site_intervention: '',
+                    fk_cause_depose: '',
+                    D_date_eve: '',
+                    S_num_rame: '',
+                    S_num_veh: '',
+                    I_kilometrage: '',
+                    S_commentaire: '',
+                    form_id: 'Saisie_CRI',
+                    transition_id: '268',
+                    idSymbole: tache.idSymbole,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
+            } else if (tache.label === 'ELECTRONIQUE - 15 - RETOUR SST - PROD') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
+                payload = new URLSearchParams({
+                    transition_id: '22771',
+                    fromForm: false,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
+            } else if (tache.label === 'ELECTRONIQUE - 16 - RETOUR RT') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
+                payload = new URLSearchParams({
+                    transition_id: '22772',
+                    fromForm: false,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
+            }
 
             GM_xmlhttpRequest({
                 method: 'POST',
-                url: 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/processTransitionForm',
+                url: url,
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 data: payload,
                 onload: res => {
@@ -307,6 +329,7 @@
             });
         });
     }
+
 
     console.log('[Planner Script] Démarrage avec requêtes GET...');
 
