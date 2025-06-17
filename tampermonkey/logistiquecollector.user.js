@@ -270,6 +270,14 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
+            } else if (tache.label === 'ELECTRONIQUE - 155 - RETOUR COMPOSANT') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
+                payload = new URLSearchParams({
+                    transition_id: '26068',
+                    fromForm: false,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
             }
 
             GM_xmlhttpRequest({
