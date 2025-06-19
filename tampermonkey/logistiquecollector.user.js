@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      2.7
+// @version      2.8
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -210,7 +210,7 @@
         const progressText = progressContainer.querySelector('.autocollector__progress-text');
 
         const tachesAFaire = donneesTaches.filter(t =>
-                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT'].includes(t.label)
+                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT'].includes(t.label)
                                                  );
 
         if (tachesAFaire.length === 0) {
@@ -274,6 +274,22 @@
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26068',
+                    fromForm: false,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
+            } else if (tache.label === 'ELECTRONIQUE - 165 - RETOUR SUPPORT') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
+                payload = new URLSearchParams({
+                    transition_id: '26060',
+                    fromForm: false,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
+            } else if (tache.label === 'ELECTRONIQUE - 168 - RETOUR REBUT') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
+                payload = new URLSearchParams({
+                    transition_id: '26069',
                     fromForm: false,
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
