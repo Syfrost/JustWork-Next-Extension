@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      2.9
+// @version      3.0
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -170,7 +170,9 @@
         const progressText = progressContainer?.querySelector('.autocollector__progress-text');
         if (!progressContainer || !progressText) return;
 
-        const total = donneesTaches.filter(t => t.label === 'ELECTRONIQUE - 00 - EN ATTENTE').length;
+        const total = donneesTaches.filter(t =>
+                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG'].includes(t.label)
+                                                 );
         if (total === 0) {
             progressContainer.classList.add('hidden');
         } else {
