@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      2.8
+// @version      2.9
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -210,7 +210,7 @@
         const progressText = progressContainer.querySelector('.autocollector__progress-text');
 
         const tachesAFaire = donneesTaches.filter(t =>
-                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT'].includes(t.label)
+                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG'].includes(t.label)
                                                  );
 
         if (tachesAFaire.length === 0) {
@@ -237,20 +237,10 @@
             let payload = null;
 
             if (tache.label === 'ELECTRONIQUE - 00 - EN ATTENTE') {
-                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/processTransitionForm';
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
-                    S_num_cri: '',
-                    t_materiel_idt_materiel: '',
-                    t_site_intervention_idt_site_intervention: '',
-                    fk_cause_depose: '',
-                    D_date_eve: '',
-                    S_num_rame: '',
-                    S_num_veh: '',
-                    I_kilometrage: '',
-                    S_commentaire: '',
-                    form_id: 'Saisie_CRI',
-                    transition_id: '268',
-                    idSymbole: tache.idSymbole,
+                    transition_id: '26056',
+                    fromForm: false,
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
@@ -294,7 +284,14 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            }
+            } else if (tache.label === 'ELECTRONIQUE - 011 - RETOUR NORIA LOG') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
+                payload = new URLSearchParams({
+                    transition_id: '26055',
+                    fromForm: false,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
 
             GM_xmlhttpRequest({
                 method: 'POST',
