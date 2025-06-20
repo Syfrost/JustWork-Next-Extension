@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.0
+// @version      3.01
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -294,7 +294,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-
+            }
             GM_xmlhttpRequest({
                 method: 'POST',
                 url: url,
