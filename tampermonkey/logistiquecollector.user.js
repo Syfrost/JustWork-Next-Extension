@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.01
+// @version      3.1
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -179,7 +179,7 @@
             progressContainer.classList.remove('hidden');
         }
 
-        progressText.textContent = `0/${total}`;
+        progressText.textContent = `0/${total.length}`;
     }
 
 
