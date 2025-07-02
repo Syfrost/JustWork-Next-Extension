@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.6
+// @version      3.7
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -266,7 +266,9 @@
             let url = '';
             let payload = null;
 
-            if (tache.label === 'ELECTRONIQUE - 00 - EN ATTENTE') {
+            const labelNormalise = normaliserLabel(tache.label);
+
+            if (labelNormalise === 'ELECTRONIQUE - 00 - EN ATTENTE') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26056',
@@ -274,7 +276,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 15 - RETOUR SST - PROD') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 15 - RETOUR SST - PROD') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '22771',
@@ -282,7 +284,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 16 - RETOUR RT') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 16 - RETOUR RT') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '22772',
@@ -290,7 +292,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 155 - RETOUR COMPOSANT') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 155 - RETOUR COMPOSANT') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26068',
@@ -298,7 +300,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 165 - RETOUR SUPPORT') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 165 - RETOUR SUPPORT') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26060',
@@ -306,7 +308,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 168 - RETOUR REBUT') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 168 - RETOUR REBUT') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26069',
@@ -314,7 +316,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 011 - RETOUR NORIA LOG') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 011 - RETOUR NORIA LOG') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26055',
@@ -322,7 +324,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 001 - A NORIER') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 001 - A NORIER') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26039',
@@ -330,7 +332,7 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } else if (tache.label === 'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE') {
+            } else if (labelNormalise === 'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE') {
                 url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
                 payload = new URLSearchParams({
                     transition_id: '26067',
