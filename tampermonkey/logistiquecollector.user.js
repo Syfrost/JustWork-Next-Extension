@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.4
+// @version      3.5
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -165,14 +165,30 @@
         }
     }
 
+    function normaliserLabel(label) {
+        return label?.trim().replace(/\s+/g, ' ').normalize('NFKC');
+    }
+
     function updateProgressBarFromDonneesTaches() {
         const progressContainer = document.querySelector('.autocollector__progress');
         const progressText = progressContainer?.querySelector('.autocollector__progress-text');
         if (!progressContainer || !progressText) return;
 
+        const labelsEligibles = [
+            'ELECTRONIQUE - 00 - EN ATTENTE',
+            'ELECTRONIQUE - 15 - RETOUR SST - PROD',
+            'ELECTRONIQUE - 16 - RETOUR RT',
+            'ELECTRONIQUE - 155 - RETOUR COMPOSANT',
+            'ELECTRONIQUE - 168 - RETOUR REBUT',
+            'ELECTRONIQUE - 165 - RETOUR SUPPORT',
+            'ELECTRONIQUE - 011 - RETOUR NORIA LOG',
+            'ELECTRONIQUE - 001 - A NORIER',
+            'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE'
+        ].map(normaliserLabel);
+
         const total = donneesTaches.filter(t =>
-                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG', 'ELECTRONIQUE - 001 - A NORIER', 'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE'].includes(t.label)
-                                                 );
+                                           labelsEligibles.includes(normaliserLabel(t.label))
+                                          );
         if (total === 0) {
             progressContainer.classList.add('hidden');
         } else {
@@ -211,8 +227,20 @@
         const progressContainer = document.querySelector('.autocollector__progress');
         const progressText = progressContainer.querySelector('.autocollector__progress-text');
 
+        const labelsEligibles = [
+            'ELECTRONIQUE - 00 - EN ATTENTE',
+            'ELECTRONIQUE - 15 - RETOUR SST - PROD',
+            'ELECTRONIQUE - 16 - RETOUR RT',
+            'ELECTRONIQUE - 155 - RETOUR COMPOSANT',
+            'ELECTRONIQUE - 168 - RETOUR REBUT',
+            'ELECTRONIQUE - 165 - RETOUR SUPPORT',
+            'ELECTRONIQUE - 011 - RETOUR NORIA LOG',
+            'ELECTRONIQUE - 001 - A NORIER',
+            'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE'
+        ].map(normaliserLabel);
+
         const tachesAFaire = donneesTaches.filter(t =>
-                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG', 'ELECTRONIQUE - 001 - A NORIER', 'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE'].includes(t.label)
+                                                  labelsEligibles.includes(normaliserLabel(t.label))
                                                  );
 
         if (tachesAFaire.length === 0) {
