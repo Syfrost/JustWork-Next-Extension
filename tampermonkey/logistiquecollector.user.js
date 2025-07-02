@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.3
+// @version      3.4
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -171,7 +171,7 @@
         if (!progressContainer || !progressText) return;
 
         const total = donneesTaches.filter(t =>
-                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG', 'ELECTRONIQUE - 001 - A NORIER'].includes(t.label)
+                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG', 'ELECTRONIQUE - 001 - A NORIER', 'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE'].includes(t.label)
                                                  );
         if (total === 0) {
             progressContainer.classList.add('hidden');
@@ -212,7 +212,7 @@
         const progressText = progressContainer.querySelector('.autocollector__progress-text');
 
         const tachesAFaire = donneesTaches.filter(t =>
-                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG', 'ELECTRONIQUE - 001 - A NORIER'].includes(t.label)
+                                                  ['ELECTRONIQUE - 00 - EN ATTENTE', 'ELECTRONIQUE - 15 - RETOUR SST - PROD', 'ELECTRONIQUE - 16 - RETOUR RT', 'ELECTRONIQUE - 155 - RETOUR COMPOSANT', 'ELECTRONIQUE - 168 - RETOUR REBUT', 'ELECTRONIQUE - 165 - RETOUR SUPPORT', 'ELECTRONIQUE - 011 - RETOUR NORIA LOG', 'ELECTRONIQUE - 001 - A NORIER', 'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE'].includes(t.label)
                                                  );
 
         if (tachesAFaire.length === 0) {
@@ -302,7 +302,15 @@
                     idUser: tache.idUser,
                     current_repair_id: tache.numeroReparation
                 }).toString();
-            } 
+            } else if (tache.label === 'ELECTRONIQUE - 167 - RETOUR CONTROLE QUALITE') {
+                url = 'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ProcessTransition';
+                payload = new URLSearchParams({
+                    transition_id: '26067',
+                    fromForm: false,
+                    idUser: tache.idUser,
+                    current_repair_id: tache.numeroReparation
+                }).toString();
+            }
             GM_xmlhttpRequest({
                 method: 'POST',
                 url: url,
