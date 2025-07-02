@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.5
+// @version      3.6
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -34,9 +34,9 @@
     align-items: center;
     flex-direction: column;
     width: 100%;
-    border-radius: 13px;
-    /*border: 3px solid rgb(255, 115, 0);*/
-    background: rgba(0, 0, 0, 0.5);
+    border-radius: 5px !important;
+    border: 1px solid rgb(62, 68, 70) !important;
+    background: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(5px);
     padding: 5px;
 }
@@ -60,7 +60,7 @@
 }
 .autoelement__text {
     padding-right: 5px;
-    color: antiquewhite;
+    color: rgb(204,204,204) !important;
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
     font-size: 0.8rem;
