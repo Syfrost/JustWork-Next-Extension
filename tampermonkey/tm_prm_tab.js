@@ -110,9 +110,49 @@
         button.title = 'Ouvrir toutes les réparations';
 
         button.addEventListener('click', () => {
-            const links = document.querySelectorAll('#dataTablePrmFilles a.openIframeLink');
-            links.forEach(link => link.click());
-            console.log(`▶️ ${links.length} iframe(s) ouvertes`);
+            const links = Array.from(document.querySelectorAll('#dataTablePrmFilles a.openIframeLink'));
+            const iframesOpened = document.querySelectorAll('tr.iframe-row').length > 0;
+
+            if (iframesOpened) {
+                // Fermer toutes les iframes
+                button.innerHTML = 'Fermeture...';
+                document.querySelectorAll('tr.iframe-row').forEach(row => row.remove());
+
+                links.forEach(link => {
+                    link.innerHTML = 'Afficher ici';
+                });
+
+                setTimeout(() => {
+                    button.innerHTML = '<span>Tout ouvrir</span>';
+                }, 1000);
+
+                console.log('❎ Toutes les iframes ont été fermées');
+                return;
+            }
+
+            // Ouvrir avec délai progressif
+            const total = links.length;
+            if (total === 0) {
+                button.innerHTML = 'Aucun lien trouvé';
+                return;
+            }
+
+            let count = 0;
+            links.forEach((link, index) => {
+                setTimeout(() => {
+                    link.click();
+                    count++;
+                    button.innerHTML = `Ouverture ${count}/${total}`;
+
+                    if (count === total) {
+                        setTimeout(() => {
+                            button.innerHTML = '✅ Tout ouvert';
+                        }, 500);
+                    }
+                }, index * 250);
+            });
+
+            console.log(`▶️ Ouverture de ${total} iframes`);
         });
 
         container.appendChild(button);
