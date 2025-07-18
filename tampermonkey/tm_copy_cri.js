@@ -1,6 +1,10 @@
 (function () {
     'use strict';
 
+    if (!location.href.startsWith("https://planner.cloud.microsoft/webui/mytasks/assignedtome/view/board")) {
+        return;
+    }
+
     document.addEventListener("DOMContentLoaded", verifierPresenceTitre);
 
     let formDataCRI = null; // Stockage temporaire en mémoire
