@@ -2,7 +2,7 @@
     'use strict';
 
     function masquerSiPlannerView(element) {
-        if (location.href.includes("planner.cloud.microsoft/webui/mytasks/assignedtome/view/")) {
+        if (location.href.includes("planner.cloud.microsoft/webui/")) {
             element.classList.add('hide');
         }
     }
