@@ -17,6 +17,10 @@
     }
 
     function ajouterBoutonScanManuel() {
+        if (!location.href.includes("planner.cloud.microsoft")) {
+            return; // Ne pas afficher le bouton si on n'est pas sur Microsoft Planner
+        }
+
         const bouton = document.createElement('button');
         bouton.textContent = 'SCAN';
         bouton.style.position = 'fixed';
@@ -42,6 +46,7 @@
 
         document.body.appendChild(bouton);
     }
+
 
     function scanContainers() {
         console.log('[Planner Script] Démarrage avec scan des conteneurs...');
