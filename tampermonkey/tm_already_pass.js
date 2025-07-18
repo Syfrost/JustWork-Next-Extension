@@ -11,6 +11,10 @@
 (function () {
     'use strict';
 
+    if (!location.href.startsWith("https://planner.cloud.microsoft/webui/mytasks/assignedtome/view/board")) {
+        return;
+    }
+
     const questionTexte = "La pièce est elle revenue deux fois ou plus dans une année pour des motifs similaire";
 
     const intervalCheck = setInterval(() => {
