@@ -1,6 +1,10 @@
 (function() {
     'use strict';
 
+    if (!location.href.startsWith("https://planner.cloud.microsoft/webui/mytasks/assignedtome/view/board")) {
+        return;
+    }
+
     // Récupérer la valeur de l'élément #idUser ou chaîne vide si absent
     const cpPersoValue = (document.getElementById("idUser") || {}).value || "";
 
