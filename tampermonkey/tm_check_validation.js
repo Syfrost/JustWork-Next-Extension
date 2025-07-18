@@ -1,15 +1,26 @@
 (function() {
     'use strict';
 
-    if (!location.href.startsWith("https://planner.cloud.microsoft/webui/mytasks/assignedtome/view/board")) {
-        return;
+    function masquerSiPlannerView(element) {
+        if (location.href.includes("planner.cloud.microsoft/webui/mytasks/assignedtome/view/")) {
+            element.classList.add('hide');
+        }
     }
+
+    const style = document.createElement('style');
+    style.textContent = `
+    .hide {
+        display: none !important;
+    }
+    `;
+    document.head.appendChild(style);
 
     // Récupérer la valeur de l'élément #idUser ou chaîne vide si absent
     const cpPersoValue = (document.getElementById("idUser") || {}).value || "";
 
     // Créer un conteneur pour les boutons
     const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'collectorpanel';
     buttonContainer.style.position = 'fixed';
     buttonContainer.style.bottom = '10px';
     buttonContainer.style.right = '10px';
@@ -19,6 +30,7 @@
     buttonContainer.style.borderRadius = '5px';
     buttonContainer.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
     document.body.appendChild(buttonContainer);
+    masquerSiPlannerView(buttonContainer);
 
     // Fonction pour styliser les boutons
     function styleButton(button, backgroundColor, iconClass) {
