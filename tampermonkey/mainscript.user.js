@@ -1,18 +1,23 @@
 // ==UserScript==
 // @name         Script collector auto
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      1.4.9
+// @version      1.5.0
 // @description  Charge plusieurs scripts distants
 // @author       Cedric G
+// @connect      prod.cloud-collectorplus.mt.sncf.fr
 // @match        https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/*
+// @match        https://planner.cloud.microsoft/webui/mytasks/assignedtome/view/*
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_check_validation.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_copy_cri.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_copy_rex.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_already_pass.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_prm_tab.js
+// @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_planner_scan.js
 // @updateURL    https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/master/tampermonkey/mainscript.user.js
 // @downloadURL  https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/master/tampermonkey/mainscript.user.js
 // @grant        GM_info
+// @grant        GM_addStyle
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 (function () {
@@ -92,6 +97,59 @@
         button.style.borderRadius = '5px';
         button.style.cursor = 'pointer';
         button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
+    }
+
+    GM_addStyle(`
+    .autoelement {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+        border-radius: 5px !important;
+        border: 2px solid rgb(255, 128, 0) !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(5px);
+        box-shadow: 0 2px 8px rgba(255, 104, 0, 0.8);
+        padding: 5px;
+    }
+    .autoelement__img__container {
+        display: block;
+        position: relative;
+        padding: 4px 4px 4px 4px;
+        margin: 0;
+        width: auto;
+        height: auto;
+        border-radius: 50px;
+        overflow: hidden;
+    }
+    .autoelement__img__source {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 25px !important;
+        height: 20px !important;
+        overflow: hidden;
+    }
+    .autoelement__text {
+        padding-right: 5px;
+        color: rgb(204,204,204) !important;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 400;
+        font-size: 0.8rem;
+    }
+        `);
+        injecterPoliceMontserrat();
+
+    function injecterPoliceMontserrat() {
+        if (!document.getElementById('font')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://fonts.googleapis.com/css?family=Montserrat:300,400,700,900&display=swap';
+            link.id = 'font';
+            document.head.appendChild(link);
+            console.log('🔤 Police Montserrat injectée.');
+        }
     }
 
 })();
