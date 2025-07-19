@@ -94,6 +94,7 @@
         container.style.padding = '5px 10px';
         container.style.fontSize = '12px';
         container.style.maxWidth = '160px';
+        container.style.textAlign = 'center';
 
         container.innerHTML = `
         <div class="autoelement__img__container" style="text-align:center;">
@@ -110,8 +111,15 @@
         </span>
     `;
 
-        thumbnail.style.position = 'relative'; // obligatoire pour absolute
+        thumbnail.style.position = 'relative';
         thumbnail.appendChild(container);
+
+        // Ajuste dynamiquement la hauteur du thumbnail
+        setTimeout(() => {
+            const hauteurOverlay = container.scrollHeight;
+            const hauteurMin = Math.max(hauteurOverlay + 20, 100);
+            thumbnail.style.minHeight = hauteurMin + 'px';
+        }, 0);
     }
 
     function testerLienHttp(lien, taskCard, tentative = 1) {
@@ -133,16 +141,16 @@
 
                     const label = doc.querySelector('span.label-success');
                     let texteLabel = label?.textContent?.trim() || 'non trouvé';
-
-                    // Ajout de la condition de redirection vers AfficherPv
                     if (texteLabel === 'non trouvé' && response.finalUrl?.includes('/Prm/AfficherPv/')) {
                         texteLabel = 'Terminé / PV';
                     }
 
-                    const input = doc.getElementById('idSymbole');
-                    const symbole = input?.value?.trim() || 'non trouvé';
-                    const inputUser = doc.getElementById('idUser');
-                    const idUser = inputUser?.value?.trim() || 'non trouvé';
+                    const symbole = doc.getElementById('idSymbole')?.value?.trim() || 'non trouvé';
+                    const idUser = doc.getElementById('idUser')?.value?.trim() || 'non trouvé';
+
+                    const modificateur = extraireValeurParLibelle(doc, 'Dernière modif par :');
+                    const dateModif    = extraireValeurParLibelle(doc, 'Date dernière modif :');
+                    const infoAgent    = extraireValeurParLibelle(doc, 'Info Agent :');
 
                     const index = donneesTaches.findIndex(t => t.numeroReparation === numeroReparation);
                     const nouvelleTache = {
@@ -150,7 +158,10 @@
                         numeroReparation,
                         label: texteLabel,
                         idSymbole: symbole,
-                        idUser: idUser
+                        idUser: idUser,
+                        modificateur,
+                        dateModif,
+                        infoAgent
                     };
 
                     if (index !== -1) {
@@ -165,13 +176,46 @@
                         overlay.classList.remove('http-error');
                     }
 
+                    const topBar = taskCard.querySelector('.topBar');
+                    if (topBar) {
+                        let infoBox = topBar.querySelector('.collector-infos');
+                        if (!infoBox) {
+                            infoBox = document.createElement('div');
+                            infoBox.className = 'collector-infos';
+                            infoBox.style.marginBottom = '15px';
+                            infoBox.style.background = '#fdf8f0';
+                            infoBox.style.border = '1px solid #f3ae6b';
+                            infoBox.style.borderRadius = '4px';
+                            infoBox.style.padding = '4px 6px';
+                            infoBox.style.fontSize = '11px';
+                            infoBox.style.lineHeight = '1.4';
+
+                            // 🟠 Insérer AVANT le premier enfant de .topBar
+                            topBar.insertBefore(infoBox, topBar.firstChild);
+                        } else {
+                            infoBox.innerHTML = '';
+                        }
+
+                        const addInfo = (label, val) => {
+                            const span = document.createElement('span');
+                            span.style.display = 'block';
+                            span.innerHTML = `<strong>${label}</strong> ${val}`;
+                            infoBox.appendChild(span);
+                        };
+
+                        addInfo('Modifié par :', modificateur);
+                        addInfo('Date modif :', dateModif);
+                        addInfo('Info Agent :', infoAgent);
+
+                        masquerPlanProductionC();
+                    }
+
+
                     liensEnCours = Math.max(0, liensEnCours - 1);
 
                 } else {
                     if (tentative < maxTentatives) {
-                        setTimeout(() => {
-                            testerLienHttp(lien, taskCard, tentative + 1);
-                        }, 2000);
+                        setTimeout(() => testerLienHttp(lien, taskCard, tentative + 1), 2000);
                     } else {
                         if (overlay) {
                             overlay.querySelector('.text-collector').textContent = `Erreur ${response.status}`;
@@ -195,5 +239,34 @@
             }
         });
     }
+
+    function masquerPlanProductionC() {
+        const plans = document.querySelectorAll('div.planName');
+
+        for (const plan of plans) {
+            if (plan.textContent.trim() === 'Production C') {
+                plan.style.display = 'none';
+            }
+        }
+    }
+
+    function extraireValeurParLibelle(doc, libelle) {
+        const spans = [...doc.querySelectorAll('span')];
+        for (const span of spans) {
+            if (span.textContent.trim() === libelle) {
+                const parentDiv = span.closest('div');
+                const container = parentDiv?.parentElement;
+                if (container) {
+                    const infos = container.querySelectorAll('div');
+                    if (infos.length >= 2) {
+                        const valeur = infos[1]?.textContent?.trim();
+                        if (valeur) return valeur;
+                    }
+                }
+            }
+        }
+        return 'non trouvé';
+    }
+
 
 })();
