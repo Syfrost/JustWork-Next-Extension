@@ -1,23 +1,26 @@
 // ==UserScript==
 // @name         Script collector auto
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      1.5.2
+// @version      1.5.5
 // @description  Charge plusieurs scripts distants
 // @author       Cedric G
 // @connect      prod.cloud-collectorplus.mt.sncf.fr
 // @match        https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/*
-// @match        https://planner.cloud.microsoft/webui/mytasks/assignedtome/view/*
+// @match        planner.cloud.microsoft/webui/mytasks/*
+// @match        planner.cloud.microsoft/webui/myplans/*
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_check_validation.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_copy_cri.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_copy_rex.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_already_pass.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_prm_tab.js
 // @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_planner_scan.js
+// @require      https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/refs/heads/master/tampermonkey/tm_unlock_any.js
 // @updateURL    https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/master/tampermonkey/mainscript.user.js
 // @downloadURL  https://raw.githubusercontent.com/Syfrost/JustWork-Next-Extension/master/tampermonkey/mainscript.user.js
 // @grant        GM_info
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 (function () {
@@ -151,5 +154,4 @@
             console.log('🔤 Police Montserrat injectée.');
         }
     }
-
 })();
