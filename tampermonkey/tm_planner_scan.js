@@ -88,8 +88,6 @@
         container.style.left = '50%';
         container.style.transform = 'translate(-50%, -50%)';
         container.style.zIndex = '10';
-        container.style.background = 'rgba(255,255,255,0.95)';
-        container.style.border = '1px solid #ccc';
         container.style.borderRadius = '6px';
         container.style.padding = '5px 10px';
         container.style.fontSize = '12px';
@@ -183,12 +181,15 @@
                             infoBox = document.createElement('div');
                             infoBox.className = 'collector-infos';
                             infoBox.style.marginBottom = '15px';
-                            infoBox.style.background = '#fdf8f0';
-                            infoBox.style.border = '1px solid #f3ae6b';
+                            infoBox.style.background = 'rgba(0,0,0,0.5)';
+                            infoBox.style.border = '1px solid #f97731';
                             infoBox.style.borderRadius = '4px';
                             infoBox.style.padding = '4px 6px';
                             infoBox.style.fontSize = '11px';
                             infoBox.style.lineHeight = '1.4';
+                            infoBox.style.color = 'rgb(204,204,204)';
+                            infoBox.style.fontFamily = "'Montserrat', sans-serif";
+                            infoBox.style.fontWeight = '400';
 
                             // 🟠 Insérer AVANT le premier enfant de .topBar
                             topBar.insertBefore(infoBox, topBar.firstChild);
