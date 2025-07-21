@@ -11,14 +11,14 @@
     }
 
     function resetStorage() {
-        localStorage.removeItem(storageKey); // Supprime complètement le stockage précédent
-        localStorage.setItem(storageKey, JSON.stringify({
-            "1": null,
-            "2": null,
-            "3": null,
-            "4": null,
-            "5": null
-        }));
+        const vide = {
+            "1": { data: null, label: "1" },
+            "2": { data: null, label: "2" },
+            "3": { data: null, label: "3" },
+            "4": { data: null, label: "4" },
+            "5": { data: null, label: "5" }
+        };
+        localStorage.setItem(storageKey, JSON.stringify(vide));
     }
 
     // Fonction pour supprimer toutes les copies (à exécuter dans la console)
@@ -66,9 +66,10 @@
 
         let storedCopies = JSON.parse(localStorage.getItem(storageKey));
         Object.keys(storedCopies).forEach(key => {
+            const slotData = storedCopies[key];
             let btnColler = document.createElement("button");
             btnColler.id = `btnColler-${key}`;
-            btnColler.innerText = key;
+            btnColler.innerText = slotData.label || key;
             btnColler.onclick = () => collerFormulaire(key);
             styleButton(btnColler, "#6c757d", "fa-paste");
             buttonContainer.prepend(btnColler);
@@ -100,7 +101,7 @@
             alert('Formulaire non trouvé sur cette page.');
             return;
         }
-    
+
         const formData = {};
         formulaire.querySelectorAll('input, select, textarea').forEach((element) => {
             if (element.tagName === 'SELECT' && element.multiple) {
@@ -109,17 +110,23 @@
                 formData[element.name] = element.value;
             }
         });
-    
+
         let storedCopies = JSON.parse(localStorage.getItem(storageKey));
         let choix = prompt("Choisissez où sauvegarder: " + Object.keys(storedCopies).join(", "));
         if (choix && storedCopies.hasOwnProperty(choix)) {
-            storedCopies[choix] = formData;
+            let label = prompt("Entrez un nom pour ce preset :", storedCopies[choix]?.label || choix) || choix;
+            storedCopies[choix] = {
+                data: formData,
+                label: label
+            };
             localStorage.setItem(storageKey, JSON.stringify(storedCopies));
-            alert(`Formulaire copié sous '${choix}' !`);
+            alert(`Formulaire copié sous '${label}' !`);
+            location.reload(); // pour mettre à jour les noms sur les boutons
         } else {
             alert('Choix invalide.');
         }
     }
+
     
     function collerFormulaire(slot) {
         const formulaire = document.querySelector('#panel-body-general');
@@ -127,24 +134,29 @@
             alert('Formulaire non trouvé sur cette page.');
             return;
         }
-    
+
         let storedCopies = JSON.parse(localStorage.getItem(storageKey));
-        const formData = storedCopies[slot];
+        const formData = storedCopies[slot]?.data;
         if (!formData) {
             alert('Aucune donnée enregistrée pour ' + slot);
             return;
         }
-    
-        formulaire.querySelectorAll('input, select, textarea').forEach((element) => {
-            const value = formData[element.name];
-            if (value !== undefined) {
-                if (element.tagName === 'SELECT' && element.multiple) {
-                    Array.from(element.options).forEach(option => {
-                        option.selected = value.includes(option.value);
-                    });
-    
-                    // Si Bootstrap Select est utilisé (ou tout autre plugin), on peut simuler une mise à jour comme ceci :
-                    if (typeof element.closest === 'function') {
+
+        // Répéter plusieurs fois la saisie
+        let repeatCount = 4; // nombre de fois que tu veux injecter les données
+        let delay = 200; // en millisecondes
+
+        let current = 0;
+
+        const remplir = () => {
+            formulaire.querySelectorAll('input, select, textarea').forEach((element) => {
+                const value = formData[element.name];
+                if (value !== undefined) {
+                    if (element.tagName === 'SELECT' && element.multiple) {
+                        Array.from(element.options).forEach(option => {
+                            option.selected = value.includes(option.value);
+                        });
+
                         const container = element.closest('.bootstrap-select');
                         if (container) {
                             const display = container.querySelector('.filter-option-inner-inner');
@@ -152,17 +164,29 @@
                                 display.textContent = Array.from(element.selectedOptions).map(opt => opt.textContent).join(', ');
                             }
                         }
+
+                    } else {
+                        element.value = value;
                     }
-    
-                } else {
-                    element.value = value;
+
+                    element.dispatchEvent(new Event('input', { bubbles: true }));
+                    element.dispatchEvent(new Event('change', { bubbles: true }));
+                    element.dispatchEvent(new Event('blur', { bubbles: true }));
                 }
-    
-                // Déclencher les événements nécessaires
-                element.dispatchEvent(new Event('input', { bubbles: true }));
-                element.dispatchEvent(new Event('change', { bubbles: true }));
-                element.dispatchEvent(new Event('blur', { bubbles: true }));
+            });
+        };
+
+        const loop = () => {
+            if (current < repeatCount) {
+                remplir();
+                current++;
+                setTimeout(loop, delay);
+            } else {
+                console.log(`✅ Formulaire injecté ${repeatCount} fois pour stabilité.`);
             }
-        });
+        };
+
+        loop();
     }
+
 })();
