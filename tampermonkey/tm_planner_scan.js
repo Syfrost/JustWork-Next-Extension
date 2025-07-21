@@ -241,11 +241,12 @@
         });
     }
 
-    function masquerPlanProductionC() {
+    function masquerPlanProduction() {
         const plans = document.querySelectorAll('div.planName');
-
+    
         for (const plan of plans) {
-            if (plan.textContent.trim() === 'Production C') {
+            const texte = plan.textContent.trim();
+            if (texte.includes('Production ')) {
                 plan.style.display = 'none';
             }
         }
