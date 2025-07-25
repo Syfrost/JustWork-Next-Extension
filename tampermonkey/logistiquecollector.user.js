@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.7
+// @version      3.8
 // @description  Surcouche planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
@@ -580,6 +580,14 @@
         const titre = bouton?.querySelector('h4.toggleText');
 
         if (titre?.textContent?.trim() !== 'Tâches terminées') return;
+
+        // 🔍 Vérifie si cette section est dans une colonne à exclure
+        const colonne = section.closest('.columnContent');
+        const titreColonne = colonne?.querySelector('h3')?.textContent?.trim().toUpperCase();
+        if (titreColonne === 'INTROUVABLE' || titreColonne === 'MAUVAIS SYMBOLE') {
+            //console.warn(`⛔ Colonne "${titreColonne}" ignorée`);
+            return;
+        }
 
         const estOuvert = bouton.getAttribute('aria-expanded') === 'true';
 
