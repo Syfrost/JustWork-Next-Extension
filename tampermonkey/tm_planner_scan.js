@@ -208,7 +208,7 @@
                         addInfo('Date modif :', dateModif);
                         addInfo('Info Agent :', infoAgent);
 
-                        masquerPlanProductionC();
+                        masquerPlanProduction();
                     }
 
 
