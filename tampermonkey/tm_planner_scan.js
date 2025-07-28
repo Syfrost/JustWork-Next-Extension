@@ -138,13 +138,115 @@
                     const doc = parser.parseFromString(html, 'text/html');
 
                     const label = doc.querySelector('span.label-success');
-                    let texteLabel = label?.textContent?.trim() || 'non trouvé';
-                    if (texteLabel === 'non trouvé' && response.finalUrl?.includes('/Prm/AfficherPv/')) {
-                        texteLabel = 'Terminé / PV';
-                    }
 
                     const symbole = doc.getElementById('idSymbole')?.value?.trim() || 'non trouvé';
                     const idUser = doc.getElementById('idUser')?.value?.trim() || 'non trouvé';
+
+                    let texteLabel = label?.textContent?.trim() || 'non trouvé';
+                    if (texteLabel === 'non trouvé' && response.finalUrl?.includes('/Prm/AfficherPv/')) {
+                        texteLabel = 'Terminé / PV';
+                        //var dateExpe = extraireValeurDivParTexte(doc, 'Date Expédition:');
+                        //var dateFin = extraireValeurDivParTexte(doc, 'Date fin:');
+                    }
+                    else {
+                        // ✅ Récupérer le nombre d'historique (si existe)
+                        let nombreHistorique = 0;
+                        const h3List = Array.from(doc.querySelectorAll('h3'));
+
+                        for (const h3 of h3List) {
+                            const spanParent = h3.querySelector('span');
+                            if (spanParent && spanParent.textContent.includes('Historique')) {
+                                const badge = spanParent.querySelector('.badge.badge-onglet');
+                                if (badge) {
+                                    const val = parseInt(badge.textContent.trim());
+                                    if (!isNaN(val)) {
+                                        nombreHistorique = val;
+                                    }
+                                }
+                                break; // dès qu'on a trouvé un bloc historique, on sort
+                            }
+                        }
+
+                        const leftSection = taskCard.querySelector('.leftSection');
+                        if (leftSection) {
+                            // Vérifie si un élément historique a déjà été injecté
+                            if (!leftSection.querySelector('.badge-historique')) {
+                                const historiqueDiv = document.createElement('div');
+                                historiqueDiv.className = 'badge-historique';
+                                historiqueDiv.textContent = `Historique : ${nombreHistorique}`;
+                                historiqueDiv.style.marginLeft = 'auto';
+                                historiqueDiv.style.padding = '2px 6px';
+                                historiqueDiv.style.background = 'rgba(0,0,0,0.3)';
+                                historiqueDiv.style.color = '#fff';
+                                historiqueDiv.style.fontSize = '11px';
+                                historiqueDiv.style.borderRadius = '4px';
+                                historiqueDiv.style.alignSelf = 'center';
+
+                                leftSection.appendChild(historiqueDiv);
+                            }
+                        }
+
+                        if (nombreHistorique > 0 && idUser !== 'non trouvé') {
+                            const urlHistorique = `https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/ongletHistorique/${numeroReparation}?idUser=${idUser}&current_repair_id=${numeroReparation}`;
+
+                            GM_xmlhttpRequest({
+                                method: 'GET',
+                                url: urlHistorique,
+                                onload: function (res) {
+                                    const parser = new DOMParser();
+                                    const docHistorique = parser.parseFromString(res.responseText, 'text/html');
+                                    const lignes = Array.from(docHistorique.querySelectorAll('#dataTablesHistoriqueReparation tbody tr'));
+
+                                    const donnees = lignes.map(tr => {
+                                        const tds = tr.querySelectorAll('td');
+                                        return {
+                                            numeroSerie: tds[2]?.textContent.trim(),
+                                            numeroOf: tds[3]?.textContent.trim(),
+                                            typeOf: tds[4]?.textContent.trim(),
+                                            dateDebut: tds[6]?.textContent.trim(),
+                                            etat: tds[7]?.textContent.trim(),
+                                            consistance: tds[8]?.textContent.trim(),
+                                        };
+                                    });
+
+                                    const badge = leftSection.querySelector('.badge-historique');
+                                    if (badge) {
+                                        const overlay = document.createElement('div');
+                                        overlay.className = 'overlay-historique';
+                                        overlay.style.position = 'absolute';
+                                        overlay.style.top = '50%';
+                                        overlay.style.left = '50%';
+                                        overlay.style.transform = 'translate(-50%, -50%)';
+                                        overlay.style.background = 'rgba(0,0,0,0.85)';
+                                        overlay.style.color = '#fff';
+                                        overlay.style.padding = '10px';
+                                        overlay.style.borderRadius = '6px';
+                                        overlay.style.boxShadow = '0 2px 10px rgba(0,0,0,0.5)';
+                                        overlay.style.fontSize = '11px';
+                                        overlay.style.zIndex = '99999';
+                                        overlay.style.display = 'none';
+                                        //overlay.style.maxWidth = '900px';
+                                        overlay.style.overflowX = 'auto';
+
+                                        const table = document.createElement('table');
+                                        table.style.borderCollapse = 'separate';
+                                        table.style.width = '100%';
+                                        table.style.borderSpacing = '7px';
+                                        table.querySelectorAll('td, th').forEach(cell => {
+                                            cell.style.padding = '4px 7px';
+                                        });
+                                        table.innerHTML = `<thead><tr><th>N° Série</th><th>OF</th><th>Type</th><th>Date Début</th><th>État</th><th>Consistance</th></tr></thead><tbody>${donnees.map(d => `<tr><td>${d.numeroSerie}</td><td>${d.numeroOf}</td><td>${d.typeOf}</td><td>${d.dateDebut}</td><td>${d.etat}</td><td>${d.consistance}</td></tr>`).join('')}</tbody>`;
+
+                                        overlay.appendChild(table);
+                                        document.body.appendChild(overlay);
+
+                                        badge.addEventListener('mouseenter', () => overlay.style.display = 'block');
+                                        badge.addEventListener('mouseleave', () => overlay.style.display = 'none');
+                                    }
+                                }
+                            });
+                        }
+                    }
 
                     const modificateur = extraireValeurParLibelle(doc, 'Dernière modif par :');
                     const dateModif    = extraireValeurParLibelle(doc, 'Date dernière modif :');
@@ -204,9 +306,14 @@
                             infoBox.appendChild(span);
                         };
 
-                        addInfo('Modifié par :', modificateur);
-                        addInfo('Date modif :', dateModif);
-                        addInfo('Info Agent :', infoAgent);
+                        if (texteLabel === 'Terminé / PV') {
+                            addInfo('Terminé', '');
+                            //addInfo('Date Expédition :', dateExpe);
+                        } else {
+                            addInfo('Modifié par :', modificateur);
+                            addInfo('Date modif :', dateModif);
+                            addInfo('Info Agent :', infoAgent);
+                        }
 
                         masquerPlanProduction();
                     }
@@ -269,6 +376,20 @@
         }
         return 'non trouvé';
     }
+
+    /*function extraireValeurDivParTexte(doc, libelle) {
+        const divs = Array.from(doc.querySelectorAll('div'));
+        for (let i = 0; i < divs.length; i++) {
+            if (divs[i].textContent.trim() === libelle) {
+                const suivant = divs[i + 1];
+                if (suivant) {
+                    return suivant.textContent.trim();
+                }
+            }
+        }
+        return 'non trouvé';
+    }*/
+
 
 
 })();
