@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Background planner
 // @namespace    https://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  YouTube en fond du planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/*
@@ -13,8 +13,9 @@
 (function () {
   'use strict';
 
-  const YOUTUBE_VIDEO_ID = "GosiJmZ0wsg"; //car drift
-  //const YOUTUBE_VIDEO_ID = "k12GHIJB92c"; //skiing
+  //const YOUTUBE_VIDEO_ID = "e8YXqReOSSg"; //star citi
+  //const YOUTUBE_VIDEO_ID = "GosiJmZ0wsg"; //car drift
+  const YOUTUBE_VIDEO_ID = "k12GHIJB92c"; //skiing
 
   function injectBackgroundWithBlur() {
     const container = document.querySelector(".appContent");
@@ -38,6 +39,19 @@
 
     // Appliquer les styles
     GM_addStyle(`
+
+      span[class^="wrapper-"] {
+      display: none !important;
+      }
+
+      button.is-selected > span > div > .ms-Pivot-linkContent {
+      background-color: rgba(1,1,1,0.4) !important;
+      }
+
+      .ms-Pivot-linkContent {
+      border-radius: 5px !important;
+      border-color: rgba(1,1,1,0.1) !important;
+      }
 
       .textContent {
       border-radius: 5px
@@ -138,7 +152,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(11px);
         z-index: -1;
       }
 
