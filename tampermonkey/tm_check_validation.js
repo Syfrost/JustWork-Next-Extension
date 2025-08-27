@@ -67,13 +67,37 @@
     const buttonValidate = document.createElement('button');
     buttonValidate.innerText = 'Valider';
     styleButton(buttonValidate, 'green', 'fa-arrow-right');
+    buttonValidate.classList.add('validateBtn');
+
     buttonValidate.onclick = function() {
-        const btn = document.getElementById('fonctionnel_validateAndNext_form') || document.getElementById('fonctionnel_validate_form');
+        // 1. Cliquer sur tous les .validateBtn (dans la page principale)
+        document.querySelectorAll('.validateBtn').forEach(el => {
+            if (el !== buttonValidate) { // éviter que ton propre bouton se reclique
+                el.click();
+            }
+        });
+
+        // 2. Clique sur tous les .validateBtn dans les iframes
+        const iframes = document.querySelectorAll('iframe');
+        for (const iframe of iframes) {
+            try {
+                const doc = iframe.contentDocument || iframe.contentWindow.document;
+                doc.querySelectorAll('.validateBtn').forEach(el => el.click());
+            } catch (e) {
+                console.warn('Impossible d’accéder à un iframe (cross-domain).', e);
+            }
+        }
+
+        // 3. Ensuite exécuter la logique de base
+        const btn = document.getElementById('fonctionnel_validateAndNext_form')
+        || document.getElementById('fonctionnel_validate_form');
         if (btn) {
             btn.click();
         } else {
-            alert('Bouton Valider introuvable!');
+            //alert('Bouton Valider introuvable!');
         }
     };
+
     buttonContainer.appendChild(buttonValidate);
+
 })();
