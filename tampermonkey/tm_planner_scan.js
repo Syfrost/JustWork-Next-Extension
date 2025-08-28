@@ -145,6 +145,16 @@
                     let texteLabel = label?.textContent?.trim() || 'non trouvé';
                     if (texteLabel === 'non trouvé' && response.finalUrl?.includes('/Prm/AfficherPv/')) {
                         texteLabel = 'Terminé / PV';
+
+                        const completeButton = taskCard.querySelector('.completeButtonWithAnimation');
+                        if (completeButton && completeButton.getAttribute('aria-checked') !== 'true') {
+                            setTimeout(() => {
+                                completeButton.click();
+                                console.log(`[Planner Script] Bouton complete cliqué pour la tâche ${numeroReparation}`);
+                            }, 500); // Petit délai pour s'assurer que l'overlay est affiché
+                        } else if (completeButton && completeButton.getAttribute('aria-checked') === 'true') {
+                            console.log(`[Planner Script] Bouton déjà coché pour la tâche ${numeroReparation}, pas de clic`);
+                        }
                         //var dateExpe = extraireValeurDivParTexte(doc, 'Date Expédition:');
                         //var dateFin = extraireValeurDivParTexte(doc, 'Date fin:');
                     }
@@ -374,7 +384,7 @@
                 }
             }
         }
-        return 'non trouvé';
+        return 'Aucun';
     }
 
     /*function extraireValeurDivParTexte(doc, libelle) {
