@@ -40,6 +40,39 @@
     // Appliquer les styles
     GM_addStyle(`
 
+      .quickaction-wrapper {
+      background-color: rgba(1, 1, 1, 0.0) !important;
+      backdrop-filter: blur(15px);
+      }
+      .quickaction-wrapper button {
+      background-color: rgba(1, 1, 1, 0.7) !important;
+      backdrop-filter: blur(15px);
+      }
+
+      ::-webkit-scrollbar-thumb {
+      background-color: rgba(1, 1, 1, 0.3) !important;
+      border-radius: 5px;
+      }
+
+      .grid-container {
+      background-color: rgba(1, 1, 1, 0.2) !important;
+      backdrop-filter: blur(15px);
+      }
+
+      div[class^="headerRowStyles-"] {
+      background-color: rgba(1, 1, 1, 0.1) !important;
+      border-color: transparent transparent rgba(1, 1, 1, 0.1);
+      }
+
+      .grid-row {
+      background-color: rgba(1, 1, 1, 0.1) !important;
+      border-color: transparent transparent rgba(1, 1, 1, 0.1);
+      }
+
+      .new-row-placeholder {
+      background-color: rgba(1, 1, 1, 0.1) !important;
+      }
+
       span[class^="wrapper-"] {
       display: none !important;
       }
