@@ -360,7 +360,7 @@
 
     function masquerPlanProduction() {
         const plans = document.querySelectorAll('div.planName');
-    
+
         for (const plan of plans) {
             const texte = plan.textContent.trim();
             if (texte.includes('Production ')) {
@@ -384,7 +384,7 @@
                 }
             }
         }
-        return 'Aucun';
+        return '✖️';
     }
 
     /*function extraireValeurDivParTexte(doc, libelle) {
