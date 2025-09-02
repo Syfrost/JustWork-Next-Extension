@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Script collector auto
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      1.5.9
+// @version      1.6.0
 // @description  Charge plusieurs scripts distants
 // @author       Cedric G
 // @connect      prod.cloud-collectorplus.mt.sncf.fr
@@ -20,6 +20,8 @@
 // @grant        GM_info
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
+// @grant        GM_getValue
+// @grant        GM_setValue
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
 
