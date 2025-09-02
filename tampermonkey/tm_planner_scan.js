@@ -1,3 +1,29 @@
+// -------------------- MODULE LISTE --------------------
+
+// Liste configurable par l'utilisateur
+const DEFAULT_LIST = "non trouvé, ATTENTE RT, ATTENTE REBUT, ATTENTE COMPOSANT, EN ATTENTE SOUS-TRAITANCE,CONTROLE QUALITE, ATTENTE SUPPORT";
+
+function getList() {
+    return GM_getValue("autoListFinish", DEFAULT_LIST).split(",").map(s => s.trim());
+}
+
+function editList() {
+    const current = GM_getValue("autoListFinish", DEFAULT_LIST);
+    const next = prompt("Entre ta liste d'éléments séparés par des virgules:", current);
+    if (next !== null) GM_setValue("autoListFinish", next);
+}
+
+function showList() {
+    alert("Liste actuelle:\n" + getList().join("\n"));
+}
+
+// Menus Tampermonkey pour la liste
+GM_registerMenuCommand("✏️ Modifier la liste", editList);
+GM_registerMenuCommand("📋 Afficher la liste", showList);
+
+// -------------------- SCRIPT PRINCIPAL --------------------
+
+
 (function () {
     'use strict';
 
@@ -120,6 +146,37 @@
         }, 0);
     }
 
+    // Fonction qui vérifie si on doit cliquer sur le bouton "complete"
+    function tryClickComplete(taskCard, numeroReparation, texteLabel) {
+        const completeButton = taskCard.querySelector('.completeButtonWithAnimation');
+        if (!completeButton) return;
+
+        if (completeButton.getAttribute('aria-checked') === 'true') {
+            console.log(`[Planner Script] Bouton déjà coché pour la tâche ${numeroReparation}, pas de clic`);
+            return;
+        }
+
+        // Cas 1 : PV terminé
+        if (texteLabel === 'Terminé / PV') {
+            setTimeout(() => {
+                completeButton.click();
+                console.log(`[Planner Script] Bouton complete cliqué (PV) pour la tâche ${numeroReparation}`);
+            }, 500);
+            return;
+        }
+
+        // Cas 2 : correspond à un élément de la liste
+        const autoListFinish = getList();
+        const match = autoListFinish.some(item => texteLabel.includes(item));
+        if (match) {
+            setTimeout(() => {
+                completeButton.click();
+                console.log(`[Planner Script] Bouton complete cliqué (liste match: "${texteLabel}") pour la tâche ${numeroReparation}`);
+            }, 500);
+        }
+    }
+
+
     function testerLienHttp(lien, taskCard, tentative = 1) {
         liensEnCours++;
 
@@ -143,20 +200,9 @@
                     const idUser = doc.getElementById('idUser')?.value?.trim() || 'non trouvé';
 
                     let texteLabel = label?.textContent?.trim() || 'non trouvé';
+                    tryClickComplete(taskCard, numeroReparation, texteLabel);
                     if (texteLabel === 'non trouvé' && response.finalUrl?.includes('/Prm/AfficherPv/')) {
                         texteLabel = 'Terminé / PV';
-
-                        const completeButton = taskCard.querySelector('.completeButtonWithAnimation');
-                        if (completeButton && completeButton.getAttribute('aria-checked') !== 'true') {
-                            setTimeout(() => {
-                                completeButton.click();
-                                console.log(`[Planner Script] Bouton complete cliqué pour la tâche ${numeroReparation}`);
-                            }, 500); // Petit délai pour s'assurer que l'overlay est affiché
-                        } else if (completeButton && completeButton.getAttribute('aria-checked') === 'true') {
-                            console.log(`[Planner Script] Bouton déjà coché pour la tâche ${numeroReparation}, pas de clic`);
-                        }
-                        //var dateExpe = extraireValeurDivParTexte(doc, 'Date Expédition:');
-                        //var dateFin = extraireValeurDivParTexte(doc, 'Date fin:');
                     }
                     else {
                         // ✅ Récupérer le nombre d'historique (si existe)
