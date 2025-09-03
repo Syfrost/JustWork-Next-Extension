@@ -19,6 +19,7 @@
     const donneesTaches = []; // tableau global pour stocker les infos extraites
     let liensEnCours = 0;
     let postEnCours = 0;
+    let liensTraites = []; // tableau pour stocker les liens des tâches traitées avec succès
 
 
     if (document.readyState === 'loading') {
@@ -253,6 +254,9 @@
         let done = 0;
         let erreurs = 0;
         let postRestants = total;
+        
+        // Réinitialiser la liste des liens traités au début de chaque traitement
+        liensTraites = [];
 
         function updateProgress() {
             progressText.textContent = `${done}/${total}${erreurs > 0 ? ` (${erreurs} erreur${erreurs > 1 ? 's' : ''})` : ''}`;
@@ -349,6 +353,8 @@
                 onload: res => {
                     if (res.status === 200) {
                         done++;
+                        // Stocker le lien de la tâche
+                        liensTraites.push(tache.lien);
                     } else {
                         erreurs++;
                     }
@@ -356,6 +362,7 @@
                     updateProgress();
                     if (postRestants === 0) {
                         console.log('🎯 Toutes les requêtes POST terminées. Rafraîchissement en cours...');
+                        console.log('📋 Liste des liens traités avec succès:', liensTraites);
                         // Rafraîchissement des tâches
                         setTimeout(() => {
                             tachesAFaire.forEach(tache => {
@@ -379,6 +386,7 @@
                     updateProgress();
                     if (postRestants === 0) {
                         console.log('🎯 Toutes les requêtes POST terminées (avec erreurs). Rafraîchissement en cours...');
+                        console.log('📋 Liste des liens traités avec succès:', liensTraites);
                         setTimeout(() => {
                             tachesAFaire.forEach(tache => {
                                 const taskCard = document.querySelector(`#idreparation-status-${tache.numeroReparation}`)?.closest('.taskCard');
