@@ -24,10 +24,10 @@
     // Fonction pour supprimer toutes les copies (à exécuter dans la console)
     window.wipejw = function () {
         console.log("%cSuppression du stockage en cours...", "color: orange; font-weight: bold;");
-        
+
         localStorage.removeItem(storageKey); // Supprime les anciennes copies
         // resetStorage(); // Réinitialise les valeurs
-        
+
         console.log("%cStockage effacé avec succès !", "color: green; font-weight: bold;");
         location.reload(); // Rafraîchit la page pour afficher les boutons mis à jour
     };
@@ -127,7 +127,47 @@
         }
     }
 
-    
+
+    // Fonction pour valider le textarea via l'API
+    async function validateTextarea(textValue) {
+        try {
+            // Récupérer les valeurs nécessaires du DOM
+            const idUserElement = document.getElementById('idUser');
+            const idRepElement = document.getElementById('idRep');
+
+            if (!idUserElement || !idRepElement) {
+                console.error('Éléments idUser ou idRep non trouvés');
+                return false;
+            }
+
+            const payload = new FormData();
+            payload.append('S_observation_reparation', textValue);
+            payload.append('field', 'S_observation_reparation');
+            payload.append('fonctionnel_transition_id', '277');
+            payload.append('form_id', 'Saisie_Intervention');
+            payload.append('save_on_validate', 'true');
+            payload.append('idUser', idUserElement.value);
+            payload.append('current_repair_id', idRepElement.value);
+
+            const response = await fetch('https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/Validate', {
+                method: 'POST',
+                body: payload,
+                credentials: 'include' // Pour inclure les cookies de session
+            });
+
+            if (response.ok) {
+                console.log('✅ Validation réussie pour le textarea');
+                return true;
+            } else {
+                console.error('❌ Erreur lors de la validation:', response.status, response.statusText);
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Erreur lors de la requête de validation:', error);
+            return false;
+        }
+    }
+
     function collerFormulaire(slot) {
         const formulaire = document.querySelector('#panel-body-general');
         if (!formulaire) {
@@ -183,6 +223,13 @@
                 setTimeout(loop, delay);
             } else {
                 console.log(`✅ Formulaire injecté ${repeatCount} fois pour stabilité.`);
+
+                // Validation du textarea après remplissage
+                const textareaElement = document.getElementById('S_observation_reparation');
+                if (textareaElement && textareaElement.value) {
+                    console.log('🔄 Validation du textarea en cours...');
+                    validateTextarea(textareaElement.value);
+                }
             }
         };
 
