@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Background planner
 // @namespace    https://tampermonkey.net/
-// @version      1.5
+// @version      1.6
 // @description  YouTube en fond du planner
 // @author       Cedric G
 // @match        https://planner.cloud.microsoft/webui/*
@@ -39,6 +39,10 @@
 
     // Appliquer les styles
     GM_addStyle(`
+      .taskEditor-dialog-container {
+      background-color: rgba(41, 40, 39, 0.8) !important;
+      backdrop-filter: blur(5px);
+      }
 
       .quickaction-wrapper {
       background-color: rgba(1, 1, 1, 0.0) !important;
@@ -195,14 +199,37 @@
     `);
   }
 
-  // Attente de l'élément cible via MutationObserver
-  const observer = new MutationObserver(() => {
+  // Fonction pour vérifier et injecter le background
+  function checkAndInject() {
     const container = document.getElementById("main-content-container");
     if (container) {
       injectBackgroundWithBlur();
-      observer.disconnect();
+      return true;
     }
-  });
+    return false;
+  }
 
-  observer.observe(document.body, { childList: true, subtree: true });
+  // Vérification immédiate au cas où l'élément existe déjà
+  if (!checkAndInject()) {
+    // Si l'élément n'existe pas encore, utiliser MutationObserver
+    const observer = new MutationObserver(() => {
+      if (checkAndInject()) {
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: false,
+      characterData: false
+    });
+
+    // Timeout de sécurité pour éviter que l'observer reste actif indéfiniment
+    setTimeout(() => {
+      observer.disconnect();
+      // Tentative finale après 10 secondes
+      checkAndInject();
+    }, 2000);
+  }
 })();
