@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Auto post collector cri
 // @namespace    https://github.com/Syfrost/JustWork-Next-Extension
-// @version      3.8
+// @version      4.0
 // @description  Surcouche planner
-// @author       Cedric G
+// @author       Cedric GEORGES
 // @match        https://planner.cloud.microsoft/webui/plan/MxiCj9OWB02LWJYhINLPe5YAEB8_/view/*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
@@ -250,7 +250,14 @@
                                                  );
 
         if (tachesAFaire.length === 0) {
-            alert('Aucune tâche éligible trouvée.');
+            // Mode debug : activer pour simuler l'envoi de 3 tâches exemple au webhook
+            const DEBUG_MODE = false; // False pour désactiver le mode debug
+            if (DEBUG_MODE) {
+                alert('Mode debug activé : aucune tâche éligible trouvée, simulation de 3 tâches.');
+                simulerModeDebug();
+            } else {
+                alert('Aucune tâche éligible trouvée.');
+            }
             return;
         }
 
@@ -375,11 +382,19 @@
                         refreshEnCours = tachesARefresh.length;
                         totalRefreshAttendu = tachesARefresh.length;
 
-                        // Si aucune tâche à rafraîchir, appeler directement le webhook
+                        // Si aucune tâche à rafraîchir, vérifier s'il faut appeler le webhook
                         if (tachesARefresh.length === 0) {
-                            console.log('🎯 Aucune tâche à rafraîchir. Appel du webhook...');
-                            const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
-                            appelWebhookPowerAutomate(tachesTraitees);
+                            console.log('🎯 Aucune tâche à rafraîchir.');
+                            console.log('📋 Liens traités avec succès:', liensTraites);
+                            
+                            if (liensTraites.length > 0) {
+                                const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
+                                console.log('📋 Tâches envoyées au webhook:', tachesTraitees);
+                                appelWebhookPowerAutomate(tachesTraitees);
+                            } else {
+                                console.log('❌ Aucune tâche traitée avec succès. Pas d\'appel webhook.');
+                            }
+                            
                             postEnCours = 0;
                             updateAutoCollectorButtonState();
                             return;
@@ -415,11 +430,19 @@
                         refreshEnCours = tachesARefresh.length;
                         totalRefreshAttendu = tachesARefresh.length;
 
-                        // Si aucune tâche à rafraîchir, appeler directement le webhook
+                        // Si aucune tâche à rafraîchir, vérifier s'il faut appeler le webhook
                         if (tachesARefresh.length === 0) {
-                            console.log('🎯 Aucune tâche à rafraîchir (erreurs). Appel du webhook...');
-                            const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
-                            appelWebhookPowerAutomate(tachesTraitees);
+                            console.log('🎯 Aucune tâche à rafraîchir (erreurs).');
+                            console.log('📋 Liens traités avec succès:', liensTraites);
+                            
+                            if (liensTraites.length > 0) {
+                                const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
+                                console.log('📋 Tâches envoyées au webhook:', tachesTraitees);
+                                appelWebhookPowerAutomate(tachesTraitees);
+                            } else {
+                                console.log('❌ Aucune tâche traitée avec succès. Pas d\'appel webhook.');
+                            }
+                            
                             postEnCours = 0;
                             updateAutoCollectorButtonState();
                             return;
@@ -448,9 +471,124 @@
 
     console.log('[Planner Script] Démarrage avec requêtes GET...');
 
+    function simulerModeDebug() {
+        console.log('🐛 Mode debug activé - Simulation de 3 tâches');
+        
+        const liensExemples = [
+            'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/3817764.html',
+            'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/2812975.html',
+            'https://prod.cloud-collectorplus.mt.sncf.fr/Prm/Reparation/3626010.html'
+        ];
+
+        const tachesSimulees = [];
+        let compteurSimulation = 0;
+
+        liensExemples.forEach((lien, index) => {
+            const numeroReparation = lien.match(/\/(\d+)\.html$/)?.[1] || 'inconnu';
+            
+            console.log(`🐛 Simulation GET pour ${lien}`);
+            
+            // Simuler l'appel GM_xmlhttpRequest pour extraire les données
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url: lien,
+                onload: function (response) {
+                    console.log(`🐛 DEBUG - Réponse pour ${lien}: Status ${response.status}`);
+                    
+                    let tacheSimulee;
+                    if (response.status === 200) {
+                        // Extraire vraiment les données comme dans le script de base
+                        const html = response.responseText;
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+
+                        const label = doc.querySelector('span.label-success');
+                        const texteLabel = label?.textContent?.trim() || 'non trouvé';
+
+                        // Récupération du numéro OF (même logique que le script de base)
+                        const ofElements = doc.querySelectorAll('span.labelsPRM');
+                        let numOF = 'non trouvé';
+
+                        // Chercher le span qui contient exactement "N° OF :"
+                        for (const element of ofElements) {
+                            if (element.textContent.includes('N° OF :')) {
+                                // Chercher la div suivante qui contient le numéro OF
+                                const parentDiv = element.closest('div');
+                                const nextDiv = parentDiv?.nextElementSibling;
+                                numOF = nextDiv?.textContent?.trim() || 'non trouvé';
+                                break;
+                            }
+                        }
+
+                        const input = doc.getElementById('idSymbole');
+                        const symbole = input?.value?.trim() || 'non trouvé';
+
+                        const inputUser = doc.getElementById('idUser');
+                        const idUser = inputUser?.value?.trim() || 'non trouvé';
+
+                        // Récupération du nom complet utilisateur
+                        const userSpan = doc.querySelector('span.user.ellipsis');
+                        const userName = userSpan?.getAttribute('title')?.replace(/&nbsp;/g, ' ')?.trim() || 'non trouvé';
+
+                        tacheSimulee = {
+                            lien: lien,
+                            numeroReparation: numeroReparation,
+                            label: texteLabel,
+                            idSymbole: symbole,
+                            idUser: idUser,
+                            userName: userName,
+                            numOF: numOF
+                        };
+                        
+                        console.log(`🐛 DEBUG - Tâche extraite depuis HTML réel:`);
+                        console.log(`   🔧 Réparation : ${tacheSimulee.numeroReparation}`);
+                        console.log(`   🏷️ Label      : ${tacheSimulee.label}`);
+                        console.log(`   🆔 idSymbole  : ${tacheSimulee.idSymbole}`);
+                        console.log(`   👤 idUser     : ${tacheSimulee.idUser}`);
+                        console.log(`   📋 N° OF      : ${tacheSimulee.numOF}`);
+                        console.log(`   🔗 Lien       : ${tacheSimulee.lien}`);
+                        
+                        tachesSimulees.push(tacheSimulee);
+                    } else {
+                        console.log(`🐛 DEBUG - Erreur HTTP ${response.status} pour ${lien}`);
+                    }
+                    
+                    compteurSimulation++;
+                    
+                    // Quand toutes les simulations GET sont terminées, appeler le webhook
+                    if (compteurSimulation === liensExemples.length) {
+                        if (tachesSimulees.length > 0) {
+                            console.log('🐛 DEBUG - Simulation terminée, appel du webhook avec les tâches simulées');
+                            console.log('📋 Tâches simulées envoyées au webhook:', tachesSimulees);
+                            appelWebhookPowerAutomate(tachesSimulees);
+                        } else {
+                            console.log('🐛 DEBUG - Aucune tâche simulée réussie, pas d\'appel webhook');
+                        }
+                    }
+                },
+                onerror: function (error) {
+                    console.log(`🐛 DEBUG - Erreur réseau simulée pour ${lien}:`, error);
+                    compteurSimulation++;
+                    
+                    if (compteurSimulation === liensExemples.length) {
+                        if (tachesSimulees.length > 0) {
+                            console.log('🐛 DEBUG - Simulation terminée avec erreurs, appel du webhook');
+                            appelWebhookPowerAutomate(tachesSimulees);
+                        } else {
+                            console.log('🐛 DEBUG - Aucune tâche simulée réussie, pas d\'appel webhook');
+                        }
+                    }
+                }
+            });
+        });
+    }
+
     function appelWebhookPowerAutomate(tachesTraitees) {
+        // Flag pour utiliser le nom complet au lieu de l'ID utilisateur
+        const idName = true; // Passe à false pour utiliser idUser au lieu du nom complet
+        
         // Préparer les données selon le schéma Power Automate
-        const uniqueUsers = [...new Set(tachesTraitees.map(t => t.idUser))]
+        const uniqueUsers = [...new Set(tachesTraitees.map(t => idName ? t.userName : t.idUser))]
             .filter(user => user && user !== 'non trouvé' && user.trim() !== '')
             .map(user => user.trim());
 
@@ -465,9 +603,8 @@
         const payload = {
             user: uniqueUsers.length > 0 ? uniqueUsers.map(userId => ({ id: userId })) : [{ id: "utilisateur_inconnu" }],
             OF: uniqueOFs.length > 0 ? uniqueOFs.map(ofId => ({
-                id: ofId,
-                name: "alim104test"
-            })) : [{ id: "OF_inconnu", name: "alim104test" }]
+                id: ofId
+            })) : [{ id: "OF_inconnu" }]
         };
 
         console.log('📤 Envoi des données au webhook Power Automate:', payload);
@@ -592,6 +729,10 @@
                     const inputUser = doc.getElementById('idUser');
                     const idUser = inputUser?.value?.trim() || 'non trouvé';
 
+                    // Récupération du nom complet utilisateur
+                    const userSpan = doc.querySelector('span.user.ellipsis');
+                    const userName = userSpan?.getAttribute('title')?.replace(/&nbsp;/g, ' ')?.trim() || 'non trouvé';
+
                     const index = donneesTaches.findIndex(t => t.numeroReparation === numeroReparation);
                     const nouvelleTache = {
                         lien,
@@ -599,6 +740,7 @@
                         label: texteLabel,
                         idSymbole: symbole,
                         idUser: idUser,
+                        userName: userName,
                         numOF: numOF
                     };
 
@@ -634,11 +776,18 @@
                         refreshEnCours--;
                         console.log(`🔄 Rafraîchissement ${totalRefreshAttendu - refreshEnCours}/${totalRefreshAttendu} terminé`);
 
-                        // Si tous les rafraîchissements sont terminés, appeler le webhook
+                        // Si tous les rafraîchissements sont terminés, vérifier s'il faut appeler le webhook
                         if (refreshEnCours === 0) {
-                            console.log('🎯 Tous les rafraîchissements terminés ! Appel du webhook...');
-                            const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
-                            appelWebhookPowerAutomate(tachesTraitees);
+                            console.log('🎯 Tous les rafraîchissements terminés !');
+                            console.log('📋 Liens traités avec succès:', liensTraites);
+                            
+                            if (liensTraites.length > 0) {
+                                const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
+                                console.log('📋 Tâches envoyées au webhook:', tachesTraitees);
+                                appelWebhookPowerAutomate(tachesTraitees);
+                            } else {
+                                console.log('❌ Aucune tâche traitée avec succès. Pas d\'appel webhook.');
+                            }
                         }
                     }
 
@@ -667,11 +816,18 @@
                             refreshEnCours--;
                             console.log(`❌ Rafraîchissement ${totalRefreshAttendu - refreshEnCours}/${totalRefreshAttendu} échoué`);
 
-                            // Si tous les rafraîchissements sont terminés (même avec erreurs), appeler le webhook
+                            // Si tous les rafraîchissements sont terminés (même avec erreurs), vérifier s'il faut appeler le webhook
                             if (refreshEnCours === 0) {
-                                console.log('🎯 Tous les rafraîchissements terminés (avec erreurs) ! Appel du webhook...');
-                                const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
-                                appelWebhookPowerAutomate(tachesTraitees);
+                                console.log('🎯 Tous les rafraîchissements terminés (avec erreurs) !');
+                                console.log('📋 Liens traités avec succès:', liensTraites);
+                                
+                                if (liensTraites.length > 0) {
+                                    const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
+                                    console.log('📋 Tâches envoyées au webhook:', tachesTraitees);
+                                    appelWebhookPowerAutomate(tachesTraitees);
+                                } else {
+                                    console.log('❌ Aucune tâche traitée avec succès. Pas d\'appel webhook.');
+                                }
                             }
                         }
 
@@ -704,11 +860,18 @@
                         refreshEnCours--;
                         console.log(`❌ Rafraîchissement ${totalRefreshAttendu - refreshEnCours}/${totalRefreshAttendu} échoué (réseau)`);
 
-                        // Si tous les rafraîchissements sont terminés (même avec erreurs), appeler le webhook
+                        // Si tous les rafraîchissements sont terminés (même avec erreurs), vérifier s'il faut appeler le webhook
                         if (refreshEnCours === 0) {
-                            console.log('🎯 Tous les rafraîchissements terminés (avec erreurs réseau) ! Appel du webhook...');
-                            const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
-                            appelWebhookPowerAutomate(tachesTraitees);
+                            console.log('🎯 Tous les rafraîchissements terminés (avec erreurs réseau) !');
+                            console.log('📋 Liens traités avec succès:', liensTraites);
+                            
+                            if (liensTraites.length > 0) {
+                                const tachesTraitees = donneesTaches.filter(t => liensTraites.includes(t.lien));
+                                console.log('📋 Tâches envoyées au webhook:', tachesTraitees);
+                                appelWebhookPowerAutomate(tachesTraitees);
+                            } else {
+                                console.log('❌ Aucune tâche traitée avec succès. Pas d\'appel webhook.');
+                            }
                         }
                     }
 
