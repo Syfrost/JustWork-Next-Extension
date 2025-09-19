@@ -23,25 +23,29 @@
                 panelTrouve = true;
 
                 const buttonContainer = document.querySelector('div[style*="position: fixed;"][style*="bottom: 10px;"][style*="right: 10px;"]');
-                if (!buttonContainer || document.getElementById("btnOuiAuto")) return;
+                if (!buttonContainer || document.getElementById("btnOuiAuto") || document.getElementById("btnNonAuto")) return;
 
                 const btnOui = document.createElement("button");
                 btnOui.id = "btnOuiAuto";
-                btnOui.innerText = " Oui";
+                const spanOui = document.createElement("span");
+                spanOui.innerText = " Oui";
+                btnOui.appendChild(spanOui);
                 btnOui.onclick = () => {
                     const btn = panel.querySelector('button[id^="btn_bool_input"][collector-value="1"]');
                     btn?.click();
                 };
-                styleButton(btnOui, "#28a745", "fa-check");
+                window.styleButton(btnOui, "#28a745", "fa-check");
 
                 const btnNon = document.createElement("button");
                 btnNon.id = "btnNonAuto";
-                btnNon.innerText = " Non";
+                const spanNon = document.createElement("span");
+                spanNon.innerText = " Non";
+                btnNon.appendChild(spanNon);
                 btnNon.onclick = () => {
                     const btn = panel.querySelector('button[id^="btn_bool_input"][collector-value="0"]');
                     btn?.click();
                 };
-                styleButton(btnNon, "#dc3545", "fa-times");
+                window.styleButton(btnNon, "#dc3545", "fa-times");
 
                 buttonContainer.prepend(btnNon);
                 buttonContainer.prepend(btnOui);
@@ -57,16 +61,5 @@
     function retirerBoutons() {
         document.getElementById("btnOuiAuto")?.remove();
         document.getElementById("btnNonAuto")?.remove();
-    }
-
-    function styleButton(button, backgroundColor, iconClass) {
-        button.style.margin = '5px';
-        button.style.backgroundColor = backgroundColor;
-        button.style.color = 'white';
-        button.style.padding = '5px 10px';
-        button.style.border = 'none';
-        button.style.borderRadius = '5px';
-        button.style.cursor = 'pointer';
-        button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
     }
 })();
