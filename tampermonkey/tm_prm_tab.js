@@ -4,6 +4,10 @@
     const processedRows = new WeakSet();
     const iframeReloadAttempts = new WeakMap();
 
+    // Flags pour éviter la création multiple des boutons
+    let pasteButtonCreated = false;
+    let triggerButtonCreated = false;
+
     function renderIframe(pk, element) {
         const row = element.closest('tr');
         const existingIframe = row.nextElementSibling;
@@ -86,21 +90,23 @@
         const iframes = document.querySelectorAll('tr.iframe-row iframe');
 
         if (iframes.length > 0) {
-            createPasteAllButton();
-            createTriggerAllButton();
+            if (!pasteButtonCreated) createPasteAllButton();
+            if (!triggerButtonCreated) createTriggerAllButton();
             hideElementsInIframes();
             checkRedirectErrorsInIframes();
             makeErrorAlertsClosableInIframes();
         } else {
             removeFloatingButton('btnPasteAllIframes');
             removeFloatingButton('btnTriggerAllIframes');
+            pasteButtonCreated = false;
+            triggerButtonCreated = false;
         }
     }
 
 
     function createOpenAllButton() {
         const container = document.querySelector('#dataTablePrmFilles_wrapper .dt-buttons');
-        if (!container) return;
+        if (!container || document.getElementById('btnOpenAllIframes')) return;
 
         const button = document.createElement('button');
         button.id = 'btnOpenAllIframes';
@@ -160,30 +166,86 @@
     }
 
     function createPasteAllButton() {
+        console.log("🔍 createPasteAllButton appelée");
         const container = getFloatingButtonArea();
-        if (!container || document.getElementById("btnPasteAllIframes")) return;
+        if (!container) {
+            console.log("❌ Container non trouvé");
+            return;
+        }
 
+        // Vérification plus stricte pour éviter les doublons
+        if (document.getElementById("btnPasteAllIframes")) {
+            console.log("⚠️ Bouton btnPasteAllIframes existe déjà");
+            return;
+        }
+
+        console.log("🔍 Container trouvé, création du bouton...");
         const button = document.createElement("button");
         button.id = "btnPasteAllIframes";
-        button.innerText = "Coller Iframe";
+        const spanPaste = document.createElement("span");
+        spanPaste.innerText = "Coller Iframe";
+        button.appendChild(spanPaste);
         button.onclick = pasteIntoIframes;
-        styleFloatingButton(button, "#17a2b8", "fa-paste");
+
+        // Vérification que window.styleButton existe
+        if (typeof window.styleButton === 'function') {
+            window.styleButton(button, "#17a2b8", "fa-paste");
+        } else {
+            console.error("❌ window.styleButton non disponible dans tm_prm_tab - createPasteAllButton");
+            // Style de base en fallback
+            button.style.backgroundColor = "#17a2b8";
+            button.style.color = "white";
+            button.style.padding = "5px 10px";
+            button.style.border = "none";
+            button.style.borderRadius = "5px";
+            button.style.cursor = "pointer";
+            button.style.margin = "5px";
+        }
 
         container.prepend(button);
+        pasteButtonCreated = true;
         console.log("✅ Bouton 'Coller Iframe' ajouté");
     }
 
     function createTriggerAllButton() {
+        console.log("🔍 createTriggerAllButton appelée");
         const container = getFloatingButtonArea();
-        if (!container || document.getElementById("btnTriggerAllIframes")) return;
+        if (!container) {
+            console.log("❌ Container non trouvé");
+            return;
+        }
 
+        // Vérification plus stricte pour éviter les doublons
+        if (document.getElementById("btnTriggerAllIframes")) {
+            console.log("⚠️ Bouton btnTriggerAllIframes existe déjà");
+            return;
+        }
+
+        console.log("🔍 Container trouvé, création du bouton...");
         const button = document.createElement("button");
         button.id = "btnTriggerAllIframes";
-        button.innerText = "Traiter Iframe";
+        const spanTrigger = document.createElement("span");
+        spanTrigger.innerText = "Traiter Iframe";
+        button.appendChild(spanTrigger);
         button.onclick = triggerButtonsInIframes;
-        styleFloatingButton(button, "#007bff", "fa-bolt");
+
+        // Vérification que window.styleButton existe
+        if (typeof window.styleButton === 'function') {
+            window.styleButton(button, "#007bff", "fa-bolt");
+        } else {
+            console.error("❌ window.styleButton non disponible dans tm_prm_tab - createTriggerAllButton");
+            // Style de base en fallback
+            button.style.backgroundColor = "#007bff";
+            button.style.color = "white";
+            button.style.padding = "5px 10px";
+            button.style.border = "none";
+            button.style.borderRadius = "5px";
+            button.style.cursor = "pointer";
+            button.style.margin = "5px";
+        }
 
         container.prepend(button);
+        triggerButtonCreated = true;
         console.log("✅ Bouton 'Traiter Iframe' ajouté");
     }
 
@@ -197,17 +259,6 @@
 
     function getFloatingButtonArea() {
         return document.querySelector('div[style*="position: fixed;"][style*="bottom: 10px;"][style*="right: 10px;"]');
-    }
-
-    function styleFloatingButton(button, backgroundColor, iconClass) {
-        button.style.margin = '5px';
-        button.style.backgroundColor = backgroundColor;
-        button.style.color = 'white';
-        button.style.padding = '5px 10px';
-        button.style.border = 'none';
-        button.style.borderRadius = '5px';
-        button.style.cursor = 'pointer';
-        button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
     }
 
     function pasteIntoIframes() {
