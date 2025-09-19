@@ -17,9 +17,21 @@ function showList() {
     alert("Liste actuelle:\n" + getList().join("\n"));
 }
 
+// Fonctions pour l'auto-checker
+function isAutoCheckerEnabled() {
+    return GM_getValue("autoCheckerEnabled", true);
+}
+
+function toggleAutoChecker() {
+    const current = isAutoCheckerEnabled();
+    GM_setValue("autoCheckerEnabled", !current);
+    alert(`Auto-checker ${!current ? 'activé' : 'désactivé'}`);
+}
+
 // Menus Tampermonkey pour la liste
 GM_registerMenuCommand("✏️ Modifier la liste", editList);
 GM_registerMenuCommand("📋 Afficher la liste", showList);
+GM_registerMenuCommand("🔄 Activer/Désactiver Auto-checker", toggleAutoChecker);
 
 // -------------------- SCRIPT PRINCIPAL --------------------
 
@@ -148,6 +160,17 @@ GM_registerMenuCommand("📋 Afficher la liste", showList);
 
     // Fonction qui vérifie si on doit cliquer sur le bouton "complete"
     function tryClickComplete(taskCard, numeroReparation, texteLabel) {
+        // Vérifie si l'auto-checker est activé
+        if (!isAutoCheckerEnabled()) {
+            //console.log(`[Planner Script] Auto-checker désactivé pour la tâche ${numeroReparation}`);
+            return;
+        }
+
+        // Vérifie si on est sur la page personnelle
+        if (!location.href.includes("planner.cloud.microsoft/webui/mytasks/assignedtome/")) {
+            return; // Ne pas autocheck si pas sur la page personnelle
+        }
+
         const completeButton = taskCard.querySelector('.completeButtonWithAnimation');
         if (!completeButton) return;
 
@@ -449,3 +472,4 @@ GM_registerMenuCommand("📋 Afficher la liste", showList);
 
 
 })();
+
