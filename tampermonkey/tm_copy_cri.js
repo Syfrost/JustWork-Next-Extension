@@ -19,21 +19,25 @@
 
     function ajouterBoutons() {
         const buttonContainer = document.querySelector('div[style*="position: fixed;"][style*="bottom: 10px;"][style*="right: 10px;"]');
-        if (!buttonContainer || document.getElementById("btnCopierCRI")) {
+        if (!buttonContainer || document.getElementById("btnCopierCRI") || document.getElementById("btnCollerCRI")) {
             return;
         }
 
         let btnCopier = document.createElement("button");
         btnCopier.id = "btnCopierCRI";
-        btnCopier.innerText = "Copier CRI";
+        const spanCopier = document.createElement("span");
+        spanCopier.innerText = "Copier CRI";
+        btnCopier.appendChild(spanCopier);
         btnCopier.onclick = copierFormulaireCRI;
-        styleButton(btnCopier, "#6c757d", "fa-copy");
+        window.styleButton(btnCopier, "#6c757d", "fa-copy");
 
         let btnColler = document.createElement("button");
         btnColler.id = "btnCollerCRI";
-        btnColler.innerText = "Coller CRI";
+        const spanColler = document.createElement("span");
+        spanColler.innerText = "Coller CRI";
+        btnColler.appendChild(spanColler);
         btnColler.onclick = collerFormulaireCRI;
-        styleButton(btnColler, "#6c757d", "fa-paste");
+        window.styleButton(btnColler, "#6c757d", "fa-paste");
 
         buttonContainer.prepend(btnColler);
         buttonContainer.prepend(btnCopier);
@@ -42,17 +46,6 @@
     function retirerBoutons() {
         document.getElementById("btnCopierCRI")?.remove();
         document.getElementById("btnCollerCRI")?.remove();
-    }
-
-    function styleButton(button, backgroundColor, iconClass) {
-        button.style.margin = '5px';
-        button.style.backgroundColor = backgroundColor;
-        button.style.color = 'white';
-        button.style.padding = '5px 10px';
-        button.style.border = 'none';
-        button.style.borderRadius = '5px';
-        button.style.cursor = 'pointer';
-        button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
     }
 
     function copierFormulaireCRI() {
