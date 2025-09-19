@@ -32,41 +32,43 @@
     document.body.appendChild(buttonContainer);
     masquerSiPlannerView(buttonContainer);
 
-    // Fonction pour styliser les boutons
-    function styleButton(button, backgroundColor, iconClass) {
-        button.style.margin = '5px';
-        button.style.backgroundColor = backgroundColor;
-        button.style.color = 'white';
-        button.style.padding = '5px 10px';
-        button.style.border = 'none';
-        button.style.borderRadius = '5px';
-        button.style.cursor = 'pointer';
-        button.innerHTML = `<i class='fa ${iconClass}'></i> ` + button.innerText;
+    // Bouton "Conforme"
+    if (!document.getElementById("btnConforme")) {
+        const buttonConfo = document.createElement('button');
+        buttonConfo.id = "btnConforme";
+        const spanConfo = document.createElement('span');
+        spanConfo.innerText = 'Conforme';
+        buttonConfo.appendChild(spanConfo);
+        window.styleButton(buttonConfo, 'blue', 'fa-check');
+        buttonConfo.onclick = function() {
+            document.querySelectorAll('button[title="Conforme"]').forEach(button => button.click());
+        };
+        buttonContainer.appendChild(buttonConfo);
     }
 
-    // Bouton "Conforme"
-    const buttonConfo = document.createElement('button');
-    buttonConfo.innerText = 'Conforme';
-    styleButton(buttonConfo, 'blue', 'fa-check');
-    buttonConfo.onclick = function() {
-        document.querySelectorAll('button[title="Conforme"]').forEach(button => button.click());
-    };
-    buttonContainer.appendChild(buttonConfo);
-
     // Bouton "Signer"
-    const buttonSign = document.createElement('button');
-    buttonSign.innerText = 'Signer';
-    styleButton(buttonSign, 'orange', 'fa-pen');
-    buttonSign.onclick = function() {
-        console.log("cpPersoValue =", cpPersoValue);
-        document.querySelectorAll(`button[cp="${cpPersoValue}"]`).forEach(button => button.click());
-    };
-    buttonContainer.appendChild(buttonSign);
+    if (!document.getElementById("btnSigner")) {
+        const buttonSign = document.createElement('button');
+        buttonSign.id = "btnSigner";
+        const spanSign = document.createElement('span');
+        spanSign.innerText = 'Signer';
+        buttonSign.appendChild(spanSign);
+        window.styleButton(buttonSign, 'orange', 'fa-pen');
+        buttonSign.onclick = function() {
+            console.log("cpPersoValue =", cpPersoValue);
+            document.querySelectorAll(`button[cp="${cpPersoValue}"]`).forEach(button => button.click());
+        };
+        buttonContainer.appendChild(buttonSign);
+    }
 
     // Bouton "Valider"
-    const buttonValidate = document.createElement('button');
-    buttonValidate.innerText = 'Valider';
-    styleButton(buttonValidate, 'green', 'fa-arrow-right');
+    if (!document.getElementById("btnValider")) {
+        const buttonValidate = document.createElement('button');
+        buttonValidate.id = "btnValider";
+    const spanValidate = document.createElement('span');
+    spanValidate.innerText = 'Valider';
+    buttonValidate.appendChild(spanValidate);
+    window.styleButton(buttonValidate, 'green', 'fa-arrow-right');
     buttonValidate.classList.add('validateBtn');
 
     buttonValidate.onclick = function() {
@@ -96,8 +98,9 @@
         } else {
             //alert('Bouton Valider introuvable!');
         }
-    };
+        };
 
-    buttonContainer.appendChild(buttonValidate);
+        buttonContainer.appendChild(buttonValidate);
+    }
 
 })();
